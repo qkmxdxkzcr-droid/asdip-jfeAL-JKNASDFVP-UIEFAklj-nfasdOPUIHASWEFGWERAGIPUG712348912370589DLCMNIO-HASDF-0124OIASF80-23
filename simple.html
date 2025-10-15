@@ -1593,8 +1593,14 @@
         // Получаем настройки
         const settings = await getSettings();
         
+        console.log('Day structure:', day);
+        console.log('Tasks to schedule:', tasks);
+        console.log('Settings:', settings);
+        
         // Выполняем автопланирование
         const { day: updatedDay, tasks: scheduledTasks } = autoScheduleDay(day, tasks, [], settings.weights);
+        
+        console.log('Scheduled tasks:', scheduledTasks);
         
         // Обновляем UI
         updateUIFromScheduledTasks(scheduledTasks);
@@ -1611,14 +1617,36 @@
     // Вспомогательные функции для работы с данными
     async function getDay(date) {
       // Возвращаем структуру дня с окнами
+      const windows = Array.from(document.querySelectorAll('.timeline-window')).map((windowEl, index) => {
+        const title = windowEl.querySelector('.window-title').textContent;
+        let startMin, endMin;
+        
+        // Маппинг времени для каждого окна
+        if (title === 'Morning') {
+          startMin = 8 * 60; // 8:00
+          endMin = 12 * 60;   // 12:00
+        } else if (title === 'Afternoon') {
+          startMin = 12 * 60; // 12:00
+          endMin = 17 * 60;   // 17:00
+        } else if (title === 'Evening') {
+          startMin = 17 * 60; // 17:00
+          endMin = 22 * 60;   // 22:00
+        } else {
+          startMin = 0;
+          endMin = 60;
+        }
+        
+        return {
+          id: ['morning', 'afternoon', 'evening'][index] || `window_${index}`,
+          title,
+          startMin,
+          endMin
+        };
+      });
+      
       return {
         date,
-        windows: Array.from(document.querySelectorAll('.window')).map(windowEl => ({
-          id: windowEl.id,
-          title: windowEl.querySelector('.window-title').textContent,
-          startMin: parseInt(windowEl.dataset.startMin) || 0,
-          endMin: parseInt(windowEl.dataset.endMin) || 60
-        })),
+        windows,
         fixed: [],
         placed: []
       };
@@ -1647,19 +1675,48 @@
     }
     
     function updateUIFromScheduledTasks(scheduledTasks) {
+      console.log('Updating UI with scheduled tasks:', scheduledTasks);
+      
       // Обновляем UI на основе запланированных задач
       scheduledTasks.forEach(task => {
         if (task.planned) {
-          const windowEl = document.getElementById(task.planned.windowId);
-          if (windowEl) {
-            const taskEl = document.querySelector(`[data-task-id="${task.id}"]`);
-            if (taskEl) {
-              const droplist = windowEl.querySelector('.droplist');
-              droplist.appendChild(taskEl);
+          const taskEl = document.querySelector(`[data-task-id="${task.id}"]`);
+          if (taskEl) {
+            // Находим целевое окно по windowId
+            const targetWindow = findWindowById(task.planned.windowId);
+            if (targetWindow) {
+              const droplist = targetWindow.querySelector('.droplist');
+              if (droplist) {
+                console.log(`Moving task "${task.title}" to window ${task.planned.windowId}`);
+                droplist.appendChild(taskEl);
+              }
             }
           }
         }
       });
+      
+      // Обновляем статистику после перемещения
+      updateWindowStats();
+      updateCurves();
+    }
+    
+    // Вспомогательная функция для поиска окна по ID
+    function findWindowById(windowId) {
+      const windows = document.querySelectorAll('.timeline-window');
+      for (const window of windows) {
+        const title = window.querySelector('.window-title').textContent;
+        let expectedId = '';
+        
+        // Маппинг названий окон на ID
+        if (title === 'Morning') expectedId = 'morning';
+        else if (title === 'Afternoon') expectedId = 'afternoon';
+        else if (title === 'Evening') expectedId = 'evening';
+        
+        if (expectedId === windowId) {
+          return window;
+        }
+      }
+      return null;
     }
     
     function generateId() {
@@ -1677,8 +1734,9 @@
       });
       
       // Подготавливаем окна
-      const windows = day.windows.map(w => ({
+      const windows = day.windows.map((w, index) => ({
         ...w,
+        id: w.id || ['morning', 'afternoon', 'evening'][index] || `window_${index}`,
         cap: w.endMin - w.startMin,
         used: 0,
         placed: []
