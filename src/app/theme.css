@@ -1,0 +1,49 @@
+:root {
+  /* Base */
+  --bg:           #F7F8FB;
+  --panel:        #FFFFFF;
+  --card:         #FFFFFF;
+  --border:       #E8EAF1;
+  --track:        #EEF0F6;
+
+  --text:         #0F172A;
+  --text-weak:    #475569;
+  --text-muted:   #6B7280;
+
+  /* Accent */
+  --accent-25:    #F4F0FF;
+  --accent-200:   #E6D6FF;
+  --accent-600:   #7C4DFF;
+
+  /* Status */
+  --ok:           #22C55E;
+  --warn:         #F59E0B;
+  --danger:       #EF4444;
+  --info:         #0EA5E9;
+
+  /* Radii / shadows / spacing */
+  --r-md: 12px;
+  --r-lg: 14px;
+  --r-xl: 16px;
+  --shadow: 0 6px 18px rgba(16,24,40,.06);
+
+  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px;
+}
+
+:root.dark {
+  --bg:           #0F1322;
+  --panel:        #12172A;
+  --card:         #141B32;
+  --border:       #1E2642;
+  --track:        #1A2240;
+
+  --text:         #E6EAF6;
+  --text-weak:    #B7C0D9;
+  --text-muted:   #9AA4C2;
+
+  --accent-25:    #1F1840;
+  --accent-200:   #2A2060;
+  --accent-600:   #8D79FF;
+
+  --shadow: 0 6px 18px rgba(0,0,0,.28);
+}

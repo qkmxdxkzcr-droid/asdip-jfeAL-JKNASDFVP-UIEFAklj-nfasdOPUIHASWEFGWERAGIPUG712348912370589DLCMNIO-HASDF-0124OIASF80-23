@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, LayoutTemplate, Clock } from "lucide-react";
 
-import TemplateDialog from "../components/templates/TemplateDialog";
+import TemplateDialog from "../components/templates/TemplateDialog.jsx";
 
 export default function Templates() {
   const [showDialog, setShowDialog] = useState(false);

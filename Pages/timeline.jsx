@@ -8,14 +8,14 @@ import { Plus } from "lucide-react"; // Added this import
 import { DragDropContext } from "@hello-pangea/dnd";
 import { toast } from "sonner";
 
-import DayHeader from "../components/timeline/DayHeader";
-import TimelineGrid from "../components/timeline/TimelineGrid";
-import CreateDayDialog from "../components/timeline/CreateDayDialog";
-import TaskList from "../components/timeline/TaskList";
-import EditDayTemplateDialog from "../components/timeline/EditDayTemplateDialog";
-import { useDragFreeze } from "../components/hooks/useDragFreeze"; // Path corrected
-import { useProjectedPlaceholder } from "../components/hooks/useProjectedPlaceholder"; // Path corrected
-import { createNestedAutoScroller } from "../components/utils/autoScrollNested"; // Path corrected
+import DayHeader from "../components/timeline/DayHeader.jsx";
+import TimelineGrid from "../components/timeline/TimelineGrid.jsx";
+import CreateDayDialog from "../components/timeline/CreateDayDialog.jsx";
+import TaskList from "../components/timeline/TaskList.jsx";
+import EditDayTemplateDialog from "../components/timeline/EditDayTemplateDialog.jsx";
+import { useDragFreeze } from "../components/hooks/useDragFreeze.jsx"; // Path corrected
+import { useProjectedPlaceholder } from "../components/hooks/useProjectedPlaceholder.jsx"; // Path corrected
+import { createNestedAutoScroller } from "../components/utils/autoScrollNested.jsx"; // Path corrected
 
 export default function Timeline() {
   const [currentDate, setCurrentDate] = useState(format(new Date(), "yyyy-MM-dd"));
@@ -362,7 +362,7 @@ export default function Timeline() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-indigo-50/30 p-4 md:p-8">
+    <div className="min-h-screen bg-white p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <DragDropContext
           onBeforeDragStart={handleBeforeDragStart}
@@ -381,21 +381,21 @@ export default function Timeline() {
             isClosing={closeDayMutation.isPending}
           />
 
-          {!dayPlan ? (
-            <div className="flex flex-col items-center justify-center py-20">
-              <div className="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-full flex items-center justify-center mb-6">
-                <Plus className="w-12 h-12 text-indigo-600" />
-              </div>
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">Нет плана на этот день</h3>
-              <p className="text-gray-500 mb-6">Создайте план дня на основе шаблона</p>
-              <Button
-                onClick={() => setShowCreateDialog(true)}
-                className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 shadow-lg"
-              >
-                <Plus className="w-5 h-5 mr-2" />
-                Создать план дня
-              </Button>
+        {!dayPlan ? (
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="w-16 h-16 border border-gray-300 rounded flex items-center justify-center mb-6">
+              <Plus className="w-8 h-8 text-black" />
             </div>
+            <h3 className="text-2xl font-bold text-black mb-2">Нет плана на этот день</h3>
+            <p className="text-black mb-6">Создайте план дня на основе шаблона</p>
+            <Button
+              onClick={() => setShowCreateDialog(true)}
+              className="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black rounded px-6 py-3"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Создать план дня
+            </Button>
+          </div>
           ) : (
             <div className="grid lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2">

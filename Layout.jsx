@@ -66,55 +66,46 @@ export default function Layout({ children, currentPageName }) {
 
   return (
     <SidebarProvider>
-      <style>{`
-        :root {
-          --primary: 239 84% 67%;
-          --primary-foreground: 0 0% 100%;
-          --secondary: 142 71% 45%;
-          --accent: 38 92% 50%;
-          --destructive: 346 87% 64%;
-        }
-      `}</style>
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 via-white to-blue-50">
-        <Sidebar className="border-r border-gray-200 bg-white/80 backdrop-blur-xl">
-          <SidebarHeader className="border-b border-gray-100 p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg">
-                  <Calendar className="w-5 h-5 text-white" />
+        <div className="min-h-screen flex w-full bg-white">
+          <Sidebar className="border-r border-gray-200 bg-white">
+            <SidebarHeader className="border-b border-gray-200 p-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 border border-gray-300 rounded flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-gray-600" />
+                  </div>
+                  <div>
+                    <h2 className="font-bold text-black text-lg">Скобки</h2>
+                    <p className="text-xs text-black">Планировщик дней</p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="font-bold text-gray-900 text-lg">Скобки</h2>
-                  <p className="text-xs text-gray-500">Планировщик дней</p>
-                </div>
+                <Link to={createPageUrl("Settings")}>
+                  <Button variant="ghost" size="icon" className="hover:bg-gray-100 border border-gray-300 rounded">
+                    <Settings className="w-4 h-4 text-gray-600" />
+                  </Button>
+                </Link>
               </div>
-              <Link to={createPageUrl("Settings")}>
-                <Button variant="ghost" size="icon" className="hover:bg-gray-100">
-                  <Settings className="w-5 h-5 text-gray-600" />
-                </Button>
-              </Link>
-            </div>
-          </SidebarHeader>
+            </SidebarHeader>
           
-          <SidebarContent className="p-3">
+          <SidebarContent className="p-4">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2 mb-1">
+              <SidebarGroupLabel className="text-xs font-semibold text-black uppercase tracking-wider px-3 py-2 mb-2">
                 Навигация
               </SidebarGroupLabel>
               <SidebarGroupContent>
                 <SidebarMenu className="space-y-1">
                   {navigationItems.map((item) => (
                     <SidebarMenuItem key={item.title}>
-                      <SidebarMenuButton 
-                        asChild 
-                        className={`hover:bg-indigo-50 hover:text-indigo-700 transition-all duration-200 rounded-xl ${
-                          location.pathname === item.url 
-                            ? 'bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-sm' 
-                            : 'text-gray-700'
+                      <SidebarMenuButton
+                        asChild
+                        className={`hover:bg-gray-100 transition-all duration-200 ${
+                          location.pathname === item.url
+                            ? 'bg-gray-100 text-purple-600 underline'
+                            : 'text-black hover:text-purple-600'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-4 py-3">
-                          <item.icon className="w-5 h-5" />
+                          <item.icon className="w-4 h-4" />
                           <span className="font-medium">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
@@ -125,11 +116,11 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-100 p-4">
+          <SidebarFooter className="border-t border-gray-200 p-4">
             <Button
               variant="ghost"
               onClick={() => base44.auth.logout()}
-              className="w-full justify-start gap-3 text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="w-full justify-start gap-3 text-black hover:text-black hover:bg-gray-100 border border-gray-300 rounded"
             >
               <LogOut className="w-4 h-4" />
               Выход
@@ -138,10 +129,10 @@ export default function Layout({ children, currentPageName }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col overflow-hidden">
-          <header className="bg-white/60 backdrop-blur-xl border-b border-gray-100 px-6 py-4 md:hidden">
+          <header className="bg-white border-b border-gray-200 px-6 py-4 md:hidden">
             <div className="flex items-center gap-4">
-              <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-xl transition-colors duration-200" />
-              <h1 className="text-xl font-bold">Скобки</h1>
+              <SidebarTrigger className="hover:bg-gray-100 p-2 rounded transition-colors duration-200" />
+              <h1 className="text-xl font-bold text-black">Скобки</h1>
             </div>
           </header>
 

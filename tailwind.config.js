@@ -9,45 +9,39 @@ export default {
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
+        bg: 'var(--bg)',
+        panel: 'var(--panel)',
+        card: 'var(--card)',
+        border: 'var(--border)',
+        track: 'var(--track)',
+        text: 'var(--text)',
+        'text-weak': 'var(--text-weak)',
+        'text-muted': 'var(--text-muted)',
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          25: 'var(--accent-25)', 
+          200: 'var(--accent-200)', 
+          600: 'var(--accent-600)',
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        ok: 'var(--ok)', 
+        warn: 'var(--warn)', 
+        danger: 'var(--danger)', 
+        info: 'var(--info)',
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      borderRadius: { 
+        md: 'var(--r-md)', 
+        lg: 'var(--r-lg)', 
+        xl: 'var(--r-xl)' 
       },
+      boxShadow: { 
+        soft: 'var(--shadow)' 
+      },
+      spacing: { 
+        's2': 'var(--s-2)', 
+        's3': 'var(--s-3)', 
+        's4': 'var(--s-4)', 
+        's5': 'var(--s-5)', 
+        's6': 'var(--s-6)' 
+      }
     },
   },
   plugins: [],
