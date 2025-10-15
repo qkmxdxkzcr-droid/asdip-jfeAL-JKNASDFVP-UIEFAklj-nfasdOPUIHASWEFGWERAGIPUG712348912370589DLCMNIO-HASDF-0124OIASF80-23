@@ -1677,23 +1677,39 @@
     function updateUIFromScheduledTasks(scheduledTasks) {
       console.log('Updating UI with scheduled tasks:', scheduledTasks);
       
+      let movedCount = 0;
+      
       // Обновляем UI на основе запланированных задач
       scheduledTasks.forEach(task => {
         if (task.planned) {
+          console.log(`Looking for task element with ID: ${task.id}`);
           const taskEl = document.querySelector(`[data-task-id="${task.id}"]`);
           if (taskEl) {
+            console.log(`Found task element: ${task.title}`);
             // Находим целевое окно по windowId
             const targetWindow = findWindowById(task.planned.windowId);
             if (targetWindow) {
+              console.log(`Found target window: ${targetWindow.querySelector('.window-title').textContent}`);
               const droplist = targetWindow.querySelector('.droplist');
               if (droplist) {
                 console.log(`Moving task "${task.title}" to window ${task.planned.windowId}`);
                 droplist.appendChild(taskEl);
+                movedCount++;
+              } else {
+                console.log(`No droplist found in target window`);
               }
+            } else {
+              console.log(`Target window not found for ID: ${task.planned.windowId}`);
             }
+          } else {
+            console.log(`Task element not found for ID: ${task.id}`);
           }
+        } else {
+          console.log(`Task ${task.title} has no planned property`);
         }
       });
+      
+      console.log(`Moved ${movedCount} tasks`);
       
       // Обновляем статистику после перемещения
       updateWindowStats();
@@ -1702,7 +1718,10 @@
     
     // Вспомогательная функция для поиска окна по ID
     function findWindowById(windowId) {
+      console.log(`Looking for window with ID: ${windowId}`);
       const windows = document.querySelectorAll('.timeline-window');
+      console.log(`Found ${windows.length} windows`);
+      
       for (const window of windows) {
         const title = window.querySelector('.window-title').textContent;
         let expectedId = '';
@@ -1712,10 +1731,14 @@
         else if (title === 'Afternoon') expectedId = 'afternoon';
         else if (title === 'Evening') expectedId = 'evening';
         
+        console.log(`Window: ${title} -> expectedId: ${expectedId}`);
+        
         if (expectedId === windowId) {
+          console.log(`Found matching window: ${title}`);
           return window;
         }
       }
+      console.log(`No window found for ID: ${windowId}`);
       return null;
     }
     
@@ -1750,6 +1773,8 @@
         const duration = task.minutes || 0;
         if (duration <= 0) continue;
         
+        console.log(`Processing task: ${task.title} (${duration}min)`);
+        
         // Скорим все доступные окна
         const scored = windows
           .map(w => ({
@@ -1760,8 +1785,17 @@
           .filter(x => x.room >= duration - eps)
           .sort((a, b) => b.s - a.s);
         
+        console.log(`Available windows for ${task.title}:`, scored.map(s => ({
+          window: s.w.title,
+          score: s.s,
+          room: s.room
+        })));
+        
         const best = scored[0];
-        if (!best) continue;
+        if (!best) {
+          console.log(`No suitable window for ${task.title}`);
+          continue;
+        }
         
         // Размещаем задачу
         const startMin = nextFreeSlotSimple(best.w);
@@ -1781,6 +1815,8 @@
           startMin,
           endMin
         };
+        
+        console.log(`Placed ${task.title} in ${best.w.title} (${best.w.id})`);
       }
       
       day.placed = windows.flatMap(w => w.placed);
