@@ -9,6 +9,138 @@
   <link rel="stylesheet" href="assets/theme.css">
   <link rel="stylesheet" href="assets/app.css">
   
+  <style>
+    /* Timeline Layout */
+    .timeline-layout {
+      display: flex;
+      gap: 1rem;
+      height: calc(100vh - 120px);
+    }
+    
+    .timeline-main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .timeline-sidebar {
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .timeline-window {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      min-height: 200px;
+    }
+    
+    .unplanned-section,
+    .flexible-section {
+      flex: 1;
+    }
+    
+    .unplanned-section .card,
+    .flexible-section .card {
+      height: 100%;
+    }
+    
+    .unplanned-section .droplist,
+    .flexible-section .droplist {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+    
+    .curves-section {
+      margin-top: 1rem;
+    }
+    
+    .curves-container {
+      height: 200px;
+    }
+    
+    /* Modal Styles */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 2rem;
+      width: 400px;
+      max-width: 90vw;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: var(--text-muted);
+    }
+    
+    .form-group {
+      margin-bottom: 1rem;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+      color: var(--text);
+    }
+    
+    .form-select {
+      width: 100%;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+      color: var(--text);
+    }
+    
+    .form-actions {
+      display: flex;
+      gap: 0.5rem;
+      justify-content: flex-end;
+      margin-top: 1rem;
+    }
+    
+    .priority-p1 { color: #EF4444; }
+    .priority-p2 { color: #F97316; }
+    .priority-p3 { color: #EAB308; }
+    .priority-p4 { color: #22C55E; }
+  </style>
+  
   <!-- External Libraries -->
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
@@ -132,112 +264,147 @@
         <div class="topbar">
           <h1 class="h1">Timeline</h1>
           <div class="topbar-actions">
-            <button class="btn" onclick="alert('Auto Schedule clicked')">Auto Schedule</button>
-            <button class="btn primary" onclick="alert('Add Task clicked')">Add Task</button>
+            <button class="btn" onclick="autoSchedule()">Auto Schedule</button>
+            <button class="btn primary" onclick="showAddTaskModal()">Add Task</button>
           </div>
         </div>
         
         <div class="timeline-container">
-          <div class="timeline-grid" id="timeline-grid">
-            <div class="timeline-window">
-              <div class="window-header">
-                <h3 class="window-title">Morning</h3>
-                <div class="window-time">08:00 - 12:00</div>
-                <div class="window-stats">
-                  <span class="used">0min</span>
-                  <span class="total">/240min</span>
+          <div class="timeline-layout">
+            <!-- Основная колонка с блоками расписания -->
+            <div class="timeline-main">
+              <div class="timeline-window">
+                <div class="window-header">
+                  <h3 class="window-title">Morning</h3>
+                  <div class="window-time">08:00 - 12:00</div>
+                  <div class="window-stats">
+                    <span class="used">0min</span>
+                    <span class="total">/240min</span>
+                  </div>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="droplist window-tasks" data-total="240" data-used="0">
+                  <div class="task">
+                    <div class="task-checkbox">
+                      <input type="checkbox" onchange="toggleTask(this)">
+                      <span class="checkmark"></span>
+                      <span class="label">Sample Task 1</span>
+                    </div>
+                    <div class="drag-handle">⋮⋮</div>
+                    <div class="task-content">
+                      <div class="task-meta">
+                        <span class="minutes">30min</span>
+                      </div>
+                    </div>
+                    <span class="priority priority-p2">P2</span>
+                    <button class="del" onclick="deleteTask(this)">&times;</button>
+                  </div>
                 </div>
               </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
+              
+              <div class="timeline-window">
+                <div class="window-header">
+                  <h3 class="window-title">Afternoon</h3>
+                  <div class="window-time">12:00 - 17:00</div>
+                  <div class="window-stats">
+                    <span class="used">0min</span>
+                    <span class="total">/300min</span>
+                  </div>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="droplist window-tasks" data-total="300" data-used="0">
+                  <!-- Tasks will be here -->
+                </div>
               </div>
-              <div class="droplist window-tasks" data-total="240" data-used="0">
-                <div class="task">
-                  <div class="task-checkbox">
-                    <input type="checkbox" onchange="toggleTask(this)">
-                    <span class="checkmark"></span>
-                    <span class="label">Sample Task 1</span>
+              
+              <div class="timeline-window">
+                <div class="window-header">
+                  <h3 class="window-title">Evening</h3>
+                  <div class="window-time">17:00 - 22:00</div>
+                  <div class="window-stats">
+                    <span class="used">0min</span>
+                    <span class="total">/300min</span>
                   </div>
-                  <div class="drag-handle">⋮⋮</div>
-                  <div class="task-content">
-                    <div class="task-meta">
-                      <span class="minutes">30min</span>
-                    </div>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-fill" style="width: 0%"></div>
+                </div>
+                <div class="droplist window-tasks" data-total="300" data-used="0">
+                  <!-- Tasks will be here -->
+                </div>
+              </div>
+              
+              <!-- Кривые дня снизу основного расписания -->
+              <div class="curves-section">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Day Curves</h3>
                   </div>
-                  <span class="priority priority-p2">P2</span>
-                  <button class="del" onclick="this.closest('.task').remove()">&times;</button>
+                  <div class="curves-container">
+                    <canvas id="curvesCanvas" width="400" height="200"></canvas>
+                  </div>
                 </div>
               </div>
             </div>
             
-            <div class="timeline-window">
-              <div class="window-header">
-                <h3 class="window-title">Afternoon</h3>
-                <div class="window-time">12:00 - 17:00</div>
-                <div class="window-stats">
-                  <span class="used">0min</span>
-                  <span class="total">/300min</span>
-                </div>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
-              </div>
-              <div class="droplist window-tasks" data-total="300" data-used="0">
-                <!-- Tasks will be here -->
-              </div>
-            </div>
-            
-            <div class="timeline-window">
-              <div class="window-header">
-                <h3 class="window-title">Evening</h3>
-                <div class="window-time">17:00 - 22:00</div>
-                <div class="window-stats">
-                  <span class="used">0min</span>
-                  <span class="total">/300min</span>
-                </div>
-              </div>
-              <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%"></div>
-              </div>
-              <div class="droplist window-tasks" data-total="300" data-used="0">
-                <!-- Tasks will be here -->
-              </div>
-            </div>
-          </div>
-          
-          <div class="unplanned-section">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Unplanned Tasks</h3>
-                <button class="btn btn-sm" onclick="alert('Add unplanned task')">Add</button>
-              </div>
-              <div class="droplist" id="unplanned">
-                <div class="task">
-                  <div class="task-checkbox">
-                    <input type="checkbox" onchange="toggleTask(this)">
-                    <span class="checkmark"></span>
-                    <span class="label">Unplanned Task 1</span>
+            <!-- Правая колонка с меню -->
+            <div class="timeline-sidebar">
+              <!-- Незапланированные задачи сверху -->
+              <div class="unplanned-section">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Unplanned Tasks</h3>
+                    <button class="btn btn-sm" onclick="showAddTaskModal()">Add</button>
                   </div>
-                  <div class="drag-handle">⋮⋮</div>
-                  <div class="task-content">
-                    <div class="task-meta">
-                      <span class="minutes">45min</span>
+                  <div class="droplist" id="unplanned">
+                    <div class="task">
+                      <div class="task-checkbox">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <span class="checkmark"></span>
+                        <span class="label">Unplanned Task 1</span>
+                      </div>
+                      <div class="drag-handle">⋮⋮</div>
+                      <div class="task-content">
+                        <div class="task-meta">
+                          <span class="minutes">45min</span>
+                        </div>
+                      </div>
+                      <span class="priority priority-p1">P1</span>
+                      <button class="del" onclick="deleteTask(this)">&times;</button>
                     </div>
                   </div>
-                  <span class="priority priority-p1">P1</span>
-                  <button class="del" onclick="this.closest('.task').remove()">&times;</button>
                 </div>
               </div>
-            </div>
-          </div>
-          
-          <div class="curves-section">
-            <div class="card">
-              <div class="card-header">
-                <h3 class="card-title">Day Curves</h3>
-              </div>
-              <div class="curves-container">
-                <canvas id="curvesCanvas" width="400" height="200"></canvas>
+              
+              <!-- Гибкие дела без ограничений по времени -->
+              <div class="flexible-section">
+                <div class="card">
+                  <div class="card-header">
+                    <h3 class="card-title">Flexible Tasks</h3>
+                    <button class="btn btn-sm" onclick="showAddFlexibleModal()">Add</button>
+                  </div>
+                  <div class="droplist" id="flexible">
+                    <div class="task">
+                      <div class="task-checkbox">
+                        <input type="checkbox" onchange="toggleTask(this)">
+                        <span class="checkmark"></span>
+                        <span class="label">Flexible Task 1</span>
+                      </div>
+                      <div class="drag-handle">⋮⋮</div>
+                      <div class="task-content">
+                        <div class="task-meta">
+                          <span class="minutes">60min</span>
+                        </div>
+                      </div>
+                      <span class="priority priority-p3">P3</span>
+                      <button class="del" onclick="deleteTask(this)">&times;</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -505,6 +672,7 @@
           handle: '.drag-handle',
           onEnd: (evt) => {
             console.log('Task moved');
+            updateWindowStats();
           }
         });
       });
@@ -580,6 +748,204 @@
         task.style.opacity = '1';
         task.querySelector('.label').style.textDecoration = 'none';
       }
+    }
+    
+    // Delete task
+    function deleteTask(button) {
+      if (confirm('Delete this task?')) {
+        button.closest('.task').remove();
+        updateWindowStats();
+      }
+    }
+    
+    // Show add task modal
+    function showAddTaskModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Task</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+          </div>
+          <form onsubmit="addTask(event)">
+            <div class="form-group">
+              <label class="form-label">Task Title</label>
+              <input type="text" class="form-input" name="title" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Duration (minutes)</label>
+              <input type="number" class="form-input" name="minutes" min="1" max="480" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-select" name="priority">
+                <option value="P1">P1 - High</option>
+                <option value="P2" selected>P2 - Medium</option>
+                <option value="P3">P3 - Low</option>
+                <option value="P4">P4 - Very Low</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn" onclick="this.closest('.modal').remove()">Cancel</button>
+              <button type="submit" class="btn primary">Add Task</button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    // Show add flexible task modal
+    function showAddFlexibleModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Flexible Task</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+          </div>
+          <form onsubmit="addFlexibleTask(event)">
+            <div class="form-group">
+              <label class="form-label">Task Title</label>
+              <input type="text" class="form-input" name="title" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Estimated Duration (minutes)</label>
+              <input type="number" class="form-input" name="minutes" min="1" max="480" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Priority</label>
+              <select class="form-select" name="priority">
+                <option value="P1">P1 - High</option>
+                <option value="P2">P2 - Medium</option>
+                <option value="P3" selected>P3 - Low</option>
+                <option value="P4">P4 - Very Low</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn" onclick="this.closest('.modal').remove()">Cancel</button>
+              <button type="submit" class="btn primary">Add Task</button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    // Add task to unplanned
+    function addTask(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const title = formData.get('title');
+      const minutes = formData.get('minutes');
+      const priority = formData.get('priority');
+      
+      const unplannedList = document.getElementById('unplanned');
+      const taskElement = createTaskElement(title, minutes, priority);
+      unplannedList.appendChild(taskElement);
+      
+      event.target.closest('.modal').remove();
+      updateWindowStats();
+    }
+    
+    // Add flexible task
+    function addFlexibleTask(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const title = formData.get('title');
+      const minutes = formData.get('minutes');
+      const priority = formData.get('priority');
+      
+      const flexibleList = document.getElementById('flexible');
+      const taskElement = createTaskElement(title, minutes, priority);
+      flexibleList.appendChild(taskElement);
+      
+      event.target.closest('.modal').remove();
+      updateWindowStats();
+    }
+    
+    // Create task element
+    function createTaskElement(title, minutes, priority) {
+      const task = document.createElement('div');
+      task.className = 'task';
+      task.innerHTML = `
+        <div class="task-checkbox">
+          <input type="checkbox" onchange="toggleTask(this)">
+          <span class="checkmark"></span>
+          <span class="label">${title}</span>
+        </div>
+        <div class="drag-handle">⋮⋮</div>
+        <div class="task-content">
+          <div class="task-meta">
+            <span class="minutes">${minutes}min</span>
+          </div>
+        </div>
+        <span class="priority priority-${priority.toLowerCase()}">${priority}</span>
+        <button class="del" onclick="deleteTask(this)">&times;</button>
+      `;
+      return task;
+    }
+    
+    // Auto schedule function
+    function autoSchedule() {
+      const unplannedTasks = document.querySelectorAll('#unplanned .task');
+      const windows = document.querySelectorAll('.window-tasks');
+      
+      if (unplannedTasks.length === 0) {
+        alert('No unplanned tasks to schedule');
+        return;
+      }
+      
+      // Simple auto-scheduling: move tasks to first available window
+      unplannedTasks.forEach((task, index) => {
+        const targetWindow = windows[index % windows.length];
+        const minutes = parseInt(task.querySelector('.minutes').textContent);
+        const total = parseInt(targetWindow.dataset.total);
+        const used = parseInt(targetWindow.dataset.used);
+        
+        if (used + minutes <= total) {
+          targetWindow.appendChild(task);
+          updateWindowStats();
+        }
+      });
+      
+      alert('Auto-scheduling completed!');
+    }
+    
+    // Update window statistics
+    function updateWindowStats() {
+      document.querySelectorAll('.window-tasks').forEach(window => {
+        const tasks = window.querySelectorAll('.task');
+        let used = 0;
+        
+        tasks.forEach(task => {
+          const minutes = parseInt(task.querySelector('.minutes').textContent);
+          used += minutes;
+        });
+        
+        window.dataset.used = used;
+        const total = parseInt(window.dataset.total);
+        const percentage = Math.min((used / total) * 100, 100);
+        
+        const stats = window.closest('.timeline-window').querySelector('.window-stats');
+        stats.querySelector('.used').textContent = used + 'min';
+        
+        const progressFill = window.closest('.timeline-window').querySelector('.progress-fill');
+        progressFill.style.width = percentage + '%';
+        
+        // Color coding
+        if (percentage > 100) {
+          progressFill.style.backgroundColor = '#EF4444';
+        } else if (percentage > 80) {
+          progressFill.style.backgroundColor = '#F97316';
+        } else if (percentage > 60) {
+          progressFill.style.backgroundColor = '#EAB308';
+        } else {
+          progressFill.style.backgroundColor = '#22C55E';
+        }
+      });
     }
     
     // Start application when DOM is loaded
