@@ -506,47 +506,19 @@ export function closeMobileMenu() {
   }
 }
 
+// Import render modules
+import { initTimeline } from './render/timeline.js';
+import { initBaseTasks } from './render/base-tasks.js';
+import { initProjects } from './render/projects.js';
+import { initTemplates } from './render/templates.js';
+import { initImport } from './render/import.js';
+import { initStats } from './render/stats.js';
+import { initDraft } from './render/draft.js';
+
 // Placeholder functions for page initialization
-// These will be implemented in their respective modules
-
-async function initTimeline() {
-  // TODO: Implement timeline initialization
-  console.log('Initializing timeline...');
-}
-
 async function initCurves() {
   // TODO: Implement curves initialization
   console.log('Initializing curves...');
-}
-
-async function initProjects() {
-  // TODO: Implement projects initialization
-  console.log('Initializing projects...');
-}
-
-async function initTemplates() {
-  // TODO: Implement templates initialization
-  console.log('Initializing templates...');
-}
-
-async function initImport() {
-  // TODO: Implement import initialization
-  console.log('Initializing import...');
-}
-
-async function initStats() {
-  // TODO: Implement stats initialization
-  console.log('Initializing stats...');
-}
-
-async function initBaseTasks() {
-  // TODO: Implement base tasks initialization
-  console.log('Initializing base tasks...');
-}
-
-async function initDraft() {
-  // TODO: Implement draft initialization
-  console.log('Initializing draft...');
 }
 
 async function initSettings() {
