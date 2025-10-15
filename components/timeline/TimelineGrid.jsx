@@ -97,29 +97,29 @@ export default function TimelineGrid({ dayPlan, scheduleItems, currentDate, drag
         const showPlaceholder = dragFreeze && projected && projected.windowId === bracket.name;
 
         return (
-          <Card 
-            key={bracketIndex}
-            className={`overflow-hidden transition-all duration-300 hover:shadow-lg ${
-              isWindow || isFlexible ? 'border-l-4' : 'bg-gray-50/50'
-            }`}
-            style={{ 
-              borderLeftColor: (isWindow || isFlexible) ? bracket.color : undefined,
-            }}
-          >
+        <Card
+          key={bracketIndex}
+          className={`overflow-hidden transition-all duration-300 hover:shadow-lg ${
+            isWindow || isFlexible ? 'border-l-4' : 'bg-gray-50'
+          }`}
+          style={{
+            borderLeftColor: (isWindow || isFlexible) ? bracket.color : undefined,
+          }}
+        >
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="w-3 h-3 rounded-full" style={{ backgroundColor: bracket.color }} />
                   <div>
-                    <CardTitle className="text-lg font-semibold">{bracket.name}</CardTitle>
+                    <CardTitle className="text-lg font-semibold text-black">{bracket.name}</CardTitle>
                     {isWindow && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                      <div className="flex items-center gap-2 text-sm text-black mt-1">
                         <Clock className="w-4 h-4" />
                         <span>{bracket.start_time} — {bracket.end_time}</span>
-                        <Badge variant="outline" className="ml-2">{duration} мин</Badge>
+                        <Badge variant="outline" className="ml-2 border-gray-300 text-black">{duration} мин</Badge>
                       </div>
                     )}
-                    {isFlexible && <p className="text-sm text-gray-500 mt-1">Без ограничений по времени</p>}
+                    {isFlexible && <p className="text-sm text-black mt-1">Без ограничений по времени</p>}
                   </div>
                 </div>
                 {isWindow && (
@@ -129,7 +129,7 @@ export default function TimelineGrid({ dayPlan, scheduleItems, currentDate, drag
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                           className={`h-full transition-all duration-300 ${
                             remainingMinutes < 0 ? 'bg-red-500' :
                             usagePercent >= 90 ? 'bg-orange-500' :
@@ -170,9 +170,9 @@ export default function TimelineGrid({ dayPlan, scheduleItems, currentDate, drag
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={`
-                        scrollable space-y-2 min-h-[100px] max-h-[600px] overflow-y-auto rounded-lg p-2
+                        scrollable space-y-2 min-h-[100px] max-h-[600px] overflow-y-auto rounded p-2
                         transition-colors duration-200
-                        ${snapshot.isDraggingOver ? 'bg-indigo-50 ring-2 ring-indigo-300' : ''}
+                        ${snapshot.isDraggingOver ? 'bg-gray-50 ring-2 ring-gray-300' : ''}
                         ${dragFreeze && !snapshot.isDraggingOver ? 'bg-gray-50' : ''}
                       `}
                       style={{ 
@@ -200,7 +200,7 @@ export default function TimelineGrid({ dayPlan, scheduleItems, currentDate, drag
                                       ref={provided.innerRef}
                                       {...provided.draggableProps}
                                       className={`
-                                        flex items-center justify-between p-3 rounded-xl border
+                                        flex items-center justify-between p-3 rounded border border-gray-300 bg-white
                                         ${snapshot.isDragging ? 'opacity-0' : 'hover:shadow-md'}
                                         ${item.status === 'done' ? 'opacity-60' : ''}
                                       `}
@@ -240,7 +240,7 @@ export default function TimelineGrid({ dayPlan, scheduleItems, currentDate, drag
                                         />
                                         
                                         <div className="flex-1">
-                                          <p className={`font-medium text-gray-900 ${item.status === 'done' ? 'line-through' : ''}`}>
+                                          <p className={`font-medium text-black ${item.status === 'done' ? 'line-through' : ''}`}>
                                             {item.task_title}
                                           </p>
                                           <div className="flex items-center gap-2 mt-1 flex-wrap">

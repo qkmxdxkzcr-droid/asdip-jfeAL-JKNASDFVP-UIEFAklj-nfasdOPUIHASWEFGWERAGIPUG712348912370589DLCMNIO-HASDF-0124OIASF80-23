@@ -26,14 +26,14 @@ export default function DayHeader({
             variant="outline"
             size="icon"
             onClick={() => onNavigate('prev')}
-            className="rounded-xl"
+            className="border-gray-300 hover:bg-gray-100"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </Button>
           <Button
             variant="outline"
             onClick={onToday}
-            className="rounded-xl"
+            className="border-gray-300 hover:bg-gray-100 bg-gray-100"
           >
             <Calendar className="w-4 h-4 mr-2" />
             Сегодня
@@ -42,24 +42,22 @@ export default function DayHeader({
             variant="outline"
             size="icon"
             onClick={() => onNavigate('next')}
-            className="rounded-xl"
+            className="border-gray-300 hover:bg-gray-100"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </Button>
         </div>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-black">
             {format(dateObj, "d MMMM", { locale: ru })}
           </h1>
           <div className="flex items-center gap-2 mt-1">
-            <p className="text-gray-500">{format(dateObj, "EEEE", { locale: ru })}</p>
+            <p className="text-black">{format(dateObj, "EEEE", { locale: ru })}</p>
             {isToday && (
-              <Badge className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white">
-                Сегодня
-              </Badge>
+              <span className="text-black font-medium">Сегодня</span>
             )}
             {dayPlan?.status === 'closed' && (
-              <Badge variant="outline" className="border-green-500 text-green-600">
+              <Badge variant="outline" className="border-gray-300 text-black">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
                 Завершён
               </Badge>
@@ -74,7 +72,7 @@ export default function DayHeader({
             <Button
               onClick={onEditTemplate}
               variant="outline"
-              className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+              className="border-gray-300 text-black hover:bg-gray-100"
             >
               <Settings className="w-4 h-4 mr-2" />
               Изменить шаблон
@@ -82,7 +80,7 @@ export default function DayHeader({
             <Button
               onClick={onCloseDay}
               disabled={isClosing}
-              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+              className="bg-gray-100 hover:bg-gray-200 border border-gray-300 text-black"
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Закрыть день
