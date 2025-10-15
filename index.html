@@ -1,13 +1,362 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Скобки - Планировщик дней</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Scheduler Demo — Windows + DnD + Curves + Calendar</title>
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+  <style>
+    :root{
+      /* light theme tokens */
+      --bg:#F7F8FB; --panel:#FFFFFF; --card:#FFFFFF; --border:#E8EAF1; --track:#EEF0F6;
+      --text:#0F172A; --text-weak:#475569; --text-muted:#6B7280;
+      --accent-25:#F4F0FF; --accent-200:#E6D6FF; --accent-600:#7C4DFF;
+      --ok:#22C55E; --warn:#F59E0B; --danger:#EF4444; --info:#0EA5E9;
+      --r-md:12px; --r-lg:14px; --r-xl:16px; --shadow:0 8px 24px rgba(13,22,46,.06);
+    }
+    html,body{height:100%;}
+    body{
+      margin:0; background:var(--bg); color:var(--text);
+      font:14px/1.4 Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;
+    }
+    .app{display:flex; min-height:100svh;}
+    .sidebar{
+      width:240px; flex:0 0 240px; background:var(--panel); border-right:1px solid var(--border);
+      padding:16px; position:sticky; top:0; align-self:flex-start; height:100svh; box-sizing:border-box;
+    }
+    .nav-item{
+      position:relative; display:flex; align-items:center; gap:10px;
+      padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none;
+    }
+    .nav-item:hover{ background:var(--accent-25); color:var(--text); }
+    .nav-item.active{ color:var(--accent-600); background:color-mix(in oklab, var(--accent-25) 80%, var(--panel)); }
+    .nav-item.active::before{
+      content:""; position:absolute; left:0; top:0; width:3px; height:100%; background:var(--accent-600); border-radius:0 4px 4px 0;
+    }
+    .content{ flex:1; padding:20px; max-width:1440px; margin:0 auto; }
+    .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px;}
+    .h1{ font-size:18px; font-weight:700;}
+    .btn{ border:1px solid var(--border); background:var(--panel); border-radius:10px; padding:8px 12px; cursor:pointer;}
+    .btn.primary{ background:var(--accent-600); color:white; border-color:transparent; }
+    .grid{
+      display:grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 0.8fr; gap:16px; align-items:start;
+    }
+    @media (max-width: 1200px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 800px){
+      .sidebar{ display:none; }
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .panel{ background:var(--panel); border:1px solid var(--border); border-radius:var(--r-xl); box-shadow:var(--shadow); padding:16px; }
+    .panel-weak{ background:#F4F6FB; }
+    .panel-title{ font-weight:600; margin-bottom:6px; }
+    .muted{ color:var(--text-weak); font-size:12px; }
+    .window-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:12px;}
+    .progress-bar{ height:6px; background:var(--track); border-radius:4px; overflow:hidden; width:160px;}
+    .progress-fill{ height:100%; background:var(--ok); width:0%; transition:width .3s ease; }
+    .list{ display:flex; flex-direction:column; gap:12px; min-height:60px; }
+    .task{ display:flex; gap:12px; align-items:flex-start; background:var(--card); border:1px solid var(--border);
+           border-radius:var(--r-xl); box-shadow:var(--shadow); padding:12px 16px; }
+    .task .title{ font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .task .meta{ font-size:12px; color:var(--text-muted); margin-top:2px;}
+    .drag-handle{ cursor:grab; user-select:none; opacity:.6; }
+    .priority{ display:grid; place-items:center; width:24px; height:24px; border-radius:999px; font-weight:700; font-size:12px; }
+    .p1{ background:color-mix(in oklab, var(--danger) 18%, white); color:var(--danger); }
+    .p2{ background:var(--accent-200); color:var(--accent-600); }
+    .p3{ background:#E0F2FE; color:#0EA5E9; }
+    .p4{ background:#E2E8F0; color:#64748B; }
+    .task:hover{ transform:translateY(-1px); border-color:color-mix(in oklab, var(--accent-600) 22%, var(--border)); }
+    .task button.del{ margin-left:auto; border:none; background:transparent; color:var(--text-muted); cursor:pointer; }
+    .task button.del:hover{ color:var(--danger); }
+    .fixed{ background:#F4F6FB; }
+    /* Curves */
+    .curves{ margin-top:16px; }
+    /* Calendar */
+    .calendar{ margin-top:16px; }
+    .cal-grid{ display:grid; grid-template-columns: repeat(7, 1fr); gap:8px; }
+    .cal-cell{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:8px; min-height:72px; display:flex; flex-direction:column; justify-content:space-between; }
+    .cal-day{ font-size:12px; color:var(--text-muted); }
+    .cal-counter{ font-size:12px; }
+    .cal-counter .done{ font-weight:700; }
+    .legend{ display:flex; gap:8px; align-items:center; font-size:12px; color:var(--text-muted); margin-bottom:8px; flex-wrap:wrap;}
+    .dot{ width:10px; height:10px; border-radius:999px; display:inline-block; }
+  </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
+  <div class="app">
+    <aside class="sidebar">
+      <div style="margin-bottom:10px; font-weight:700;">Навигация</div>
+      <a class="nav-item active" href="#timeline">Таймлайн</a>
+      <a class="nav-item" href="#curves">Кривые дня</a>
+      <a class="nav-item" href="#projects">Проекты и планы</a>
+      <a class="nav-item" href="#calendar">Календарь</a>
+      <a class="nav-item" href="#templates">Шаблоны</a>
+      <a class="nav-item" href="#import">Импорт</a>
+      <a class="nav-item" href="#stats">Статистика</a>
+    </aside>
+
+    <main class="content">
+      <div class="topbar">
+        <div class="h1">Сегодня — демо интерфейса</div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn">Изменить шаблон</button>
+          <button class="btn primary">Закрыть день</button>
+        </div>
+      </div>
+
+      <section id="timeline">
+        <div class="grid">
+          <!-- Window 1 -->
+          <div class="panel">
+            <div class="window-header">
+              <div>
+                <div class="panel-title">Пауза (2:28) — Окно 1</div>
+                <div class="muted">08:53–11:21 • всего 148 мин</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="muted"><span class="used">0</span>/<span class="total">148</span> мин</div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+              </div>
+            </div>
+            <div class="list droplist" data-window-id="w1" data-total="148">
+              <!-- tasks injected -->
+            </div>
+          </div>
+
+          <!-- Window 2 -->
+          <div class="panel">
+            <div class="window-header">
+              <div>
+                <div class="panel-title">Пауза (2:28) — Окно 2</div>
+                <div class="muted">11:54–14:22 • всего 148 мин</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="muted"><span class="used">0</span>/<span class="total">148</span> мин</div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+              </div>
+            </div>
+            <div class="list droplist" data-window-id="w2" data-total="148"></div>
+          </div>
+
+          <!-- Window 3 -->
+          <div class="panel">
+            <div class="window-header">
+              <div>
+                <div class="panel-title">Пауза (2:29) — Окно 3</div>
+                <div class="muted">16:18–18:47 • всего 149 мин</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px;">
+                <div class="muted"><span class="used">0</span>/<span class="total">149</span> мин</div>
+                <div class="progress-bar"><div class="progress-fill"></div></div>
+              </div>
+            </div>
+            <div class="list droplist" data-window-id="w3" data-total="149"></div>
+          </div>
+
+          <!-- Unplanned -->
+          <div class="panel">
+            <div class="panel-title">Незапланированные</div>
+            <div style="display:flex; gap:8px; margin-bottom:12px;">
+              <input id="newTitle" placeholder="Название задачи" style="flex:1; padding:8px 10px; border-radius:10px; border:1px solid var(--border);" />
+              <input id="newMins" type="number" value="20" min="1" style="width:80px; padding:8px 10px; border-radius:10px; border:1px solid var(--border);" />
+              <select id="newPr" style="padding:8px 10px; border-radius:10px; border:1px solid var(--border);">
+                <option>P2</option><option>P1</option><option>P3</option><option>P4</option>
+              </select>
+              <button class="btn" id="addBtn">Добавить</button>
+            </div>
+            <div class="list droplist" id="unplanned" data-window-id="unp" data-total="99999"></div>
+          </div>
+        </div>
+
+        <!-- Fixed blocks (example) -->
+        <div class="panel panel-weak" style="margin-top:16px;">
+          <div class="panel-title">Фиксированный блок: Школа</div>
+          <div class="muted">08:00–08:53</div>
+        </div>
+
+        <div class="curves panel" id="curves">
+          <div class="panel-title">Кривые дня</div>
+          <canvas id="curvesCanvas" height="220"></canvas>
+        </div>
+
+        <div class="calendar panel" id="calendar">
+          <div class="panel-title">Календарь — выполнено/всего</div>
+          <div class="legend">
+            <span class="dot" style="background:var(--ok)"></span>100%
+            <span class="dot" style="background:#10B981"></span>80%+
+            <span class="dot" style="background:var(--warn)"></span>60%+
+            <span class="dot" style="background:#F97316"></span>40%+
+            <span class="dot" style="background:var(--danger)"></span><40%
+          </div>
+          <div class="cal-grid" id="calGrid"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- SortableJS + Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script>
+    // ---- Demo data ----
+    const tasks = [
+      {id:'t1', title:'Конспект по химии', minutes:30, pr:'P1'},
+      {id:'t2', title:'Видео: квантовая механика', minutes:20, pr:'P2'},
+      {id:'t3', title:'Скрипт для автоплана', minutes:40, pr:'P2'},
+      {id:'t4', title:'Уборка папки телефона', minutes:15, pr:'P4'},
+      {id:'t5', title:'Тренировка (мобилити)', minutes:25, pr:'P3'},
+      {id:'t6', title:'Лекция: линал', minutes:35, pr:'P1'},
+    ];
+
+    // ---- Render helpers ----
+    const prClass = (p)=>({P1:'p1',P2:'p2',P3:'p3',P4:'p4'}[p]||'p2');
+    function renderTask(t){
+      const el = document.createElement('div');
+      el.className='task';
+      el.dataset.id = t.id;
+      el.dataset.minutes = t.minutes;
+      el.innerHTML = `
+        <div class="drag-handle">⋮⋮</div>
+        <div style="flex:1; min-width:0;">
+          <div class="title">${t.title}</div>
+          <div class="meta">${t.minutes} мин</div>
+        </div>
+        <span class="priority ${prClass(t.pr)}">${t.pr}</span>
+        <button class="del" title="Удалить">&times;</button>
+      `;
+      el.querySelector('.del').onclick = ()=> el.remove() || recalcAll();
+      return el;
+    }
+
+    // mount initial tasks into unplanned
+    const unp = document.getElementById('unplanned');
+    tasks.forEach(t => unp.appendChild(renderTask(t)));
+
+    // Add task form
+    document.getElementById('addBtn').onclick = () => {
+      const title = document.getElementById('newTitle').value.trim() || 'Без названия';
+      const minutes = Math.max(1, +document.getElementById('newMins').value || 15);
+      const pr = document.getElementById('newPr').value;
+      const t = {id:'t'+Math.random().toString(36).slice(2,8), title, minutes, pr};
+      unp.appendChild(renderTask(t));
+      document.getElementById('newTitle').value='';
+      recalcAll();
+    };
+
+    // ---- SortableJS init (DnD across lists, touch-ready) ----
+    const lists = Array.from(document.querySelectorAll('.droplist'));
+    const sortables = lists.map(list => new Sortable(list, {
+      group: 'windows',
+      animation: 150,
+      handle: '.drag-handle',
+      ghostClass: 'dragging',
+      onEnd: (evt) => {
+        // capacity validation
+        const listEl = evt.to;
+        const total = +listEl.dataset.total;
+        const used = sumMinutes(listEl);
+        const over = used - total;
+        if (over > 3 && listEl.id !== 'unplanned'){ // ε=3 мин
+          // revert by moving back
+          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+          // toast
+          flash(listEl, `Не помещается: превышение на ${over} мин`);
+        }
+        recalcAll();
+      }
+    }));
+
+    function sumMinutes(listEl){
+      return Array.from(listEl.children).reduce((acc,el)=>acc + (+el.dataset.minutes||0), 0);
+    }
+    function recalcAll(){
+      document.querySelectorAll('.droplist').forEach(listEl => {
+        const panel = listEl.closest('.panel');
+        const used = sumMinutes(listEl);
+        const totalEl = panel.querySelector('.total');
+        const usedEl = panel.querySelector('.used');
+        const fill = panel.querySelector('.progress-fill');
+        if(totalEl && usedEl && fill){
+          const total = +totalEl.textContent;
+          usedEl.textContent = used;
+          fill.style.width = Math.min(100, (used/Math.max(1,total))*100) + '%';
+        }
+      });
+      buildCalendar(); // update counters per day (demo)
+    }
+    function flash(parent, msg){
+      const n = document.createElement('div');
+      n.textContent = msg;
+      n.style.cssText = 'position:fixed;right:16px;bottom:16px;background:#111827;color:#fff;padding:10px 12px;border-radius:10px;opacity:0.95;z-index:9999;';
+      document.body.appendChild(n);
+      setTimeout(()=> n.remove(), 2200);
+    }
+    recalcAll();
+
+    // ---- Curves: Chart.js (line) ----
+    const ctx = document.getElementById('curvesCanvas');
+    const hours = Array.from({length:17}, (_,i)=>i); // 0..16h
+    // demo synthetic curves similar shape each time
+    function curve(x, a,b,c){ return Math.max(0, Math.min(1, a*Math.exp(-Math.pow((x-b),2)/(2*c*c)))); }
+    const cort = hours.map(h => 0.9*curve(h,1,1.0,1.5) + 0.15*curve(h,1,8,3));
+    const dopa = hours.map(h => 0.6*curve(h,1,2.0,2.2) + 0.3*(1-curve(h,1,12,4)));
+    const sero = hours.map(h => 0.4 + 0.3*curve(h,1,4.5,2.5));
+    const sleep= hours.map(h => 0.2*curve(h,1,-2,2) + 0.5*curve(h,1,15,2));
+    const chart = new Chart(ctx, {
+      type:'line',
+      data:{
+        labels: hours.map(h => h+'ч'),
+        datasets:[
+          {label:'Cort', data:cort, borderColor:'#ef4444', pointRadius:0, tension:0.35},
+          {label:'Dopa', data:dopa, borderColor:'#7C4DFF', pointRadius:0, tension:0.35},
+          {label:'Sero', data:sero, borderColor:'#22C55E', pointRadius:0, tension:0.35},
+          {label:'Sleep',data:sleep,borderColor:'#0EA5E9', pointRadius:0, tension:0.35},
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          y:{ min:0, max:1, grid:{color:'rgba(0,0,0,0.06)'} },
+          x:{ grid:{display:false} }
+        },
+        plugins:{ legend:{ position:'bottom', labels:{ boxWidth:12, usePointStyle:true } } }
+      }
+    });
+
+    // ---- Calendar with done/total counters ----
+    const calGrid = document.getElementById('calGrid');
+    function buildCalendar(){
+      // demo: 5 weeks grid for current month, generate random counters based on tasks distribution
+      calGrid.innerHTML = '';
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = today.getMonth();
+      const start = new Date(year, month, 1);
+      const startDay = new Date(start);
+      startDay.setDate(1 - ((start.getDay()+6)%7)); // Monday-first
+      for(let i=0;i<42;i++){
+        const d = new Date(startDay);
+        d.setDate(startDay.getDate()+i);
+        const inMonth = d.getMonth()===month;
+        const cell = document.createElement('div');
+        cell.className='cal-cell';
+        if(!inMonth){ cell.style.opacity = .45; }
+        // demo counters: sum tasks in windows (very rough mock)
+        const total = document.querySelectorAll('.droplist:not(#unplanned) .task').length + Math.floor(Math.random()*3);
+        const done  = Math.min(total, Math.floor(total * (0.4 + Math.random()*0.6)));
+        const ratio = total ? done/total : 0;
+        const color = ratio>=1? 'var(--ok)': ratio>=.8? '#10B981': ratio>=.6? 'var(--warn)': ratio>=.4? '#F97316': 'var(--danger)';
+        cell.innerHTML = `
+          <div class="cal-day">${d.getDate()}</div>
+          <div class="cal-counter">
+            <span class="done" style="color:${color}">${done}</span><span style="color:var(--text-muted)">/${total}</span>
+          </div>`;
+        calGrid.appendChild(cell);
+      }
+    }
+    buildCalendar();
+  </script>
   </body>
 </html>
