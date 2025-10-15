@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scheduler - Simple Version</title>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="assets/theme.css">
+  <link rel="stylesheet" href="assets/app.css">
+  
+  <!-- External Libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb@8/dist/umd.min.js"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <nav class="nav">
+        <a href="#/" class="nav-item active" onclick="showPage('timeline')">
+          <span>📅</span>
+          <span>Timeline</span>
+        </a>
+        <a href="#/curves" class="nav-item" onclick="showPage('curves')">
+          <span>📈</span>
+          <span>Curves</span>
+        </a>
+        <a href="#/projects" class="nav-item" onclick="showPage('projects')">
+          <span>📁</span>
+          <span>Projects</span>
+        </a>
+        <a href="#/calendar" class="nav-item" onclick="showPage('calendar')">
+          <span>🗓️</span>
+          <span>Calendar</span>
+        </a>
+        <a href="#/templates" class="nav-item" onclick="showPage('templates')">
+          <span>📋</span>
+          <span>Templates</span>
+        </a>
+        <a href="#/import" class="nav-item" onclick="showPage('import')">
+          <span>📥</span>
+          <span>Import</span>
+        </a>
+        <a href="#/stats" class="nav-item" onclick="showPage('stats')">
+          <span>📊</span>
+          <span>Statistics</span>
+        </a>
+        <a href="#/base-tasks" class="nav-item" onclick="showPage('base-tasks')">
+          <span>🗂️</span>
+          <span>Base Tasks</span>
+        </a>
+        <a href="#/draft" class="nav-item" onclick="showPage('draft')">
+          <span>📝</span>
+          <span>Draft</span>
+        </a>
+        <a href="#/settings" class="nav-item" onclick="showPage('settings')">
+          <span>⚙️</span>
+          <span>Settings</span>
+        </a>
+      </nav>
+    </aside>
+    
+    <main class="content" id="content">
+      <!-- Content will be rendered here -->
+    </main>
+  </div>
+
+  <script>
+    // Simple application without ES modules
+    let currentPage = 'timeline';
+    
+    // Initialize application
+    function init() {
+      console.log('Simple Scheduler starting...');
+      showPage('timeline');
+      console.log('Application initialized');
+    }
+    
+    // Show page
+    function showPage(page) {
+      currentPage = page;
+      
+      // Update navigation
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+      });
+      event.target.closest('.nav-item').classList.add('active');
+      
+      // Render page content
+      const content = document.getElementById('content');
+      
+      switch(page) {
+        case 'timeline':
+          renderTimeline(content);
+          break;
+        case 'curves':
+          renderCurves(content);
+          break;
+        case 'projects':
+          renderProjects(content);
+          break;
+        case 'calendar':
+          renderCalendar(content);
+          break;
+        case 'templates':
+          renderTemplates(content);
+          break;
+        case 'import':
+          renderImport(content);
+          break;
+        case 'stats':
+          renderStats(content);
+          break;
+        case 'base-tasks':
+          renderBaseTasks(content);
+          break;
+        case 'draft':
+          renderDraft(content);
+          break;
+        case 'settings':
+          renderSettings(content);
+          break;
+        default:
+          renderTimeline(content);
+      }
+    }
+    
+    // Render Timeline page
+    function renderTimeline(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Timeline</h1>
+          <div class="topbar-actions">
+            <button class="btn" onclick="alert('Auto Schedule clicked')">Auto Schedule</button>
+            <button class="btn primary" onclick="alert('Add Task clicked')">Add Task</button>
+          </div>
+        </div>
+        
+        <div class="timeline-container">
+          <div class="timeline-grid" id="timeline-grid">
+            <div class="timeline-window">
+              <div class="window-header">
+                <h3 class="window-title">Morning</h3>
+                <div class="window-time">08:00 - 12:00</div>
+                <div class="window-stats">
+                  <span class="used">0min</span>
+                  <span class="total">/240min</span>
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="droplist window-tasks" data-total="240" data-used="0">
+                <div class="task">
+                  <div class="task-checkbox">
+                    <input type="checkbox" onchange="toggleTask(this)">
+                    <span class="checkmark"></span>
+                    <span class="label">Sample Task 1</span>
+                  </div>
+                  <div class="drag-handle">⋮⋮</div>
+                  <div class="task-content">
+                    <div class="task-meta">
+                      <span class="minutes">30min</span>
+                    </div>
+                  </div>
+                  <span class="priority priority-p2">P2</span>
+                  <button class="del" onclick="this.closest('.task').remove()">&times;</button>
+                </div>
+              </div>
+            </div>
+            
+            <div class="timeline-window">
+              <div class="window-header">
+                <h3 class="window-title">Afternoon</h3>
+                <div class="window-time">12:00 - 17:00</div>
+                <div class="window-stats">
+                  <span class="used">0min</span>
+                  <span class="total">/300min</span>
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="droplist window-tasks" data-total="300" data-used="0">
+                <!-- Tasks will be here -->
+              </div>
+            </div>
+            
+            <div class="timeline-window">
+              <div class="window-header">
+                <h3 class="window-title">Evening</h3>
+                <div class="window-time">17:00 - 22:00</div>
+                <div class="window-stats">
+                  <span class="used">0min</span>
+                  <span class="total">/300min</span>
+                </div>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%"></div>
+              </div>
+              <div class="droplist window-tasks" data-total="300" data-used="0">
+                <!-- Tasks will be here -->
+              </div>
+            </div>
+          </div>
+          
+          <div class="unplanned-section">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Unplanned Tasks</h3>
+                <button class="btn btn-sm" onclick="alert('Add unplanned task')">Add</button>
+              </div>
+              <div class="droplist" id="unplanned">
+                <div class="task">
+                  <div class="task-checkbox">
+                    <input type="checkbox" onchange="toggleTask(this)">
+                    <span class="checkmark"></span>
+                    <span class="label">Unplanned Task 1</span>
+                  </div>
+                  <div class="drag-handle">⋮⋮</div>
+                  <div class="task-content">
+                    <div class="task-meta">
+                      <span class="minutes">45min</span>
+                    </div>
+                  </div>
+                  <span class="priority priority-p1">P1</span>
+                  <button class="del" onclick="this.closest('.task').remove()">&times;</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="curves-section">
+            <div class="card">
+              <div class="card-header">
+                <h3 class="card-title">Day Curves</h3>
+              </div>
+              <div class="curves-container">
+                <canvas id="curvesCanvas" width="400" height="200"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Initialize DnD
+      initDnD();
+      
+      // Initialize curves
+      initCurves();
+    }
+    
+    // Render other pages (simplified)
+    function renderCurves(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Day Curves</h1>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Biochemical Curves</h3>
+          </div>
+          <div class="curves-container">
+            <canvas id="curvesCanvas" width="800" height="400"></canvas>
+          </div>
+        </div>
+      `;
+      initCurves();
+    }
+    
+    function renderProjects(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Projects & Plans</h1>
+          <div class="topbar-actions">
+            <button class="btn primary" onclick="alert('Add project')">Add Project</button>
+          </div>
+        </div>
+        <div class="projects-grid">
+          <div class="project-card">
+            <div class="project-header">
+              <div class="project-color" style="background-color: #7C4DFF"></div>
+              <h3 class="project-name">Sample Project</h3>
+            </div>
+            <div class="project-stats">
+              <div class="stat-item">
+                <span class="stat-label">Total Tasks</span>
+                <span class="stat-value">5</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Completed</span>
+                <span class="stat-value">3</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Completion</span>
+                <span class="stat-value">60%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderCalendar(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Calendar</h1>
+        </div>
+        <div class="calendar-container">
+          <div class="calendar-grid">
+            <!-- Calendar will be rendered here -->
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderTemplates(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Templates</h1>
+          <div class="topbar-actions">
+            <button class="btn primary" onclick="alert('Add template')">Add Template</button>
+          </div>
+        </div>
+        <div class="templates-list">
+          <div class="template-card">
+            <div class="template-header">
+              <h3 class="template-name">Default Template</h3>
+            </div>
+            <div class="template-info">
+              <div class="info-item">
+                <span class="info-label">Duration</span>
+                <span class="info-value">16h</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Windows</span>
+                <span class="info-value">3</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Fixed Events</span>
+                <span class="info-value">1</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderImport(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Import Tasks</h1>
+        </div>
+        <div class="import-container">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Import Tasks</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="import-text">Task List</label>
+              <textarea id="import-text" class="form-input" rows="10" placeholder="Enter tasks..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn" onclick="alert('Parse clicked')">Parse</button>
+              <button class="btn primary" onclick="alert('Import clicked')">Import Tasks</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderStats(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Statistics</h1>
+        </div>
+        <div class="stats-kpis-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon">📋</div>
+            <div class="kpi-content">
+              <h3 class="kpi-value">10</h3>
+              <p class="kpi-label">Total Tasks</p>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-content">
+              <h3 class="kpi-value">60%</h3>
+              <p class="kpi-label">Completion Rate</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderBaseTasks(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Base Tasks</h1>
+          <div class="topbar-actions">
+            <button class="btn primary" onclick="alert('Add base task')">Add Base Task</button>
+          </div>
+        </div>
+        <div class="base-tasks-container">
+          <div class="search-bar">
+            <input type="text" class="form-input" placeholder="Search base tasks...">
+          </div>
+          <div class="table-container">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Slug</th>
+                  <th>Sample Titles</th>
+                  <th>Default Minutes</th>
+                  <th>Default Priority</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>sample-task</td>
+                  <td>Sample Task, Test Task</td>
+                  <td>30</td>
+                  <td>P2</td>
+                  <td><button class="btn btn-sm danger">Delete</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderDraft(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Draft</h1>
+          <div class="topbar-actions">
+            <button class="btn" onclick="alert('Distribute clicked')">Distribute to Days</button>
+            <button class="btn primary" onclick="alert('Add draft task')">Add Task</button>
+          </div>
+        </div>
+        <div class="draft-container">
+          <div class="droplist" id="draft-tasks">
+            <div class="draft-task">
+              <div class="task-checkbox">
+                <input type="checkbox" onchange="toggleTask(this)">
+                <span class="checkmark"></span>
+                <span class="label">Draft Task 1</span>
+              </div>
+              <div class="task-content">
+                <div class="task-meta">
+                  <span class="minutes">30min</span>
+                  <span class="priority priority-p2">P2</span>
+                </div>
+              </div>
+              <div class="task-actions">
+                <button class="btn btn-sm" onclick="alert('Edit clicked')">Edit</button>
+                <button class="btn btn-sm danger" onclick="this.closest('.draft-task').remove()">Delete</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderSettings(container) {
+      container.innerHTML = `
+        <div class="topbar">
+          <h1 class="h1">Settings</h1>
+        </div>
+        <div class="settings-container">
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Auto-fill Settings</h3>
+            </div>
+            <div class="settings-group">
+              <label class="form-label">
+                <input type="checkbox" class="form-checkbox" checked>
+                Auto-fill minutes from base tasks
+              </label>
+              <label class="form-label">
+                <input type="checkbox" class="form-checkbox" checked>
+                Auto-fill priority from base tasks
+              </label>
+              <label class="form-label">
+                <input type="checkbox" class="form-checkbox" checked>
+                Auto-fill project from base tasks
+              </label>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Initialize DnD
+    function initDnD() {
+      if (typeof Sortable === 'undefined') return;
+      
+      document.querySelectorAll('.droplist').forEach(listEl => {
+        new Sortable(listEl, {
+          group: 'windows',
+          animation: 150,
+          handle: '.drag-handle',
+          onEnd: (evt) => {
+            console.log('Task moved');
+          }
+        });
+      });
+    }
+    
+    // Initialize curves
+    function initCurves() {
+      if (typeof Chart === 'undefined') return;
+      
+      const canvas = document.getElementById('curvesCanvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['8:00', '10:00', '12:00', '14:00', '16:00', '18:00', '20:00'],
+          datasets: [
+            {
+              label: 'Cortisol',
+              data: [0.8, 0.6, 0.4, 0.3, 0.2, 0.1, 0.1],
+              borderColor: '#EF4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              pointRadius: 0,
+              tension: 0.35
+            },
+            {
+              label: 'Dopamine',
+              data: [0.3, 0.7, 0.8, 0.6, 0.4, 0.2, 0.1],
+              borderColor: '#7C4DFF',
+              backgroundColor: 'rgba(124, 77, 255, 0.1)',
+              pointRadius: 0,
+              tension: 0.35
+            },
+            {
+              label: 'Serotonin',
+              data: [0.2, 0.4, 0.6, 0.8, 0.7, 0.5, 0.3],
+              borderColor: '#22C55E',
+              backgroundColor: 'rgba(34, 197, 94, 0.1)',
+              pointRadius: 0,
+              tension: 0.35
+            },
+            {
+              label: 'Sleep Drive',
+              data: [0.1, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9],
+              borderColor: '#0EA5E9',
+              backgroundColor: 'rgba(14, 165, 233, 0.1)',
+              pointRadius: 0,
+              tension: 0.35
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              min: 0,
+              max: 1
+            }
+          }
+        }
+      });
+    }
+    
+    // Toggle task completion
+    function toggleTask(checkbox) {
+      const task = checkbox.closest('.task, .draft-task');
+      if (checkbox.checked) {
+        task.style.opacity = '0.6';
+        task.querySelector('.label').style.textDecoration = 'line-through';
+      } else {
+        task.style.opacity = '1';
+        task.querySelector('.label').style.textDecoration = 'none';
+      }
+    }
+    
+    // Start application when DOM is loaded
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', init);
+    } else {
+      init();
+    }
+  </script>
+</body>
+</html>
