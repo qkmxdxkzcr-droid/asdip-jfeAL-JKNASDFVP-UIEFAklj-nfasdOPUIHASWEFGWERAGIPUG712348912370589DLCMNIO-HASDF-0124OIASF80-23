@@ -1,0 +1,133 @@
+/* Design Tokens - Light/Dark Theme */
+:root {
+  /* Colors - Light Theme */
+  --bg: #F7F8FB;
+  --panel: #FFFFFF;
+  --card: #FFFFFF;
+  --text: #0F172A;
+  --text-muted: #64748B;
+  --text-weak: #94A3B8;
+  --border: #E2E8F0;
+  --accent-25: #F1F5F9;
+  --accent-100: #E0E7FF;
+  --accent-200: #C7D2FE;
+  --accent-600: #7C4DFF;
+  --accent-700: #6D28D9;
+  --ok: #22C55E;
+  --warn: #F59E0B;
+  --danger: #EF4444;
+  --danger-100: #FEE2E2;
+  --danger-600: #DC2626;
+  --track: #F1F5F9;
+  
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+  --space-3xl: 32px;
+  
+  /* Border Radius */
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-2xl: 20px;
+  --r-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.1);
+  
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-base: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 20px;
+  --font-size-2xl: 24px;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+  
+  /* Layout */
+  --sidebar-width: 240px;
+  --header-height: 60px;
+  --content-max-width: 1440px;
+  
+  /* Z-index */
+  --z-dropdown: 1000;
+  --z-sticky: 1020;
+  --z-fixed: 1030;
+  --z-modal: 1040;
+  --z-toast: 1050;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --bg: #0F1322;
+  --panel: #12172A;
+  --card: #1A1F2E;
+  --text: #E6EAF6;
+  --text-muted: #94A3B8;
+  --text-weak: #64748B;
+  --border: #2D3748;
+  --accent-25: #1A1F2E;
+  --accent-100: #2D1B69;
+  --accent-200: #4C1D95;
+  --accent-600: #8B5CF6;
+  --accent-700: #7C3AED;
+  --ok: #10B981;
+  --warn: #F59E0B;
+  --danger: #EF4444;
+  --danger-100: #2D1B1B;
+  --danger-600: #DC2626;
+  --track: #1A1F2E;
+  
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+  --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Priority Colors */
+.priority-p1 { background: color-mix(in oklab, var(--danger) 18%, white); color: var(--danger); }
+.priority-p2 { background: var(--accent-200); color: var(--accent-600); }
+.priority-p3 { background: #E0F2FE; color: #0EA5E9; }
+.priority-p4 { background: #E2E8F0; color: #64748B; }
+
+[data-theme="dark"] .priority-p1 { background: color-mix(in oklab, var(--danger) 25%, var(--card)); }
+[data-theme="dark"] .priority-p2 { background: var(--accent-200); color: var(--accent-600); }
+[data-theme="dark"] .priority-p3 { background: #0C4A6E; color: #38BDF8; }
+[data-theme="dark"] .priority-p4 { background: #374151; color: #9CA3AF; }
+
+/* Task Type Colors */
+.type-u { border-left: 3px solid #8B5CF6; } /* Умственная */
+.type-m { border-left: 3px solid #F59E0B; } /* Монотонная */
+.type-f { border-left: 3px solid #10B981; } /* Физическая */
+.type-s { border-left: 3px solid #3B82F6; } /* Смешанная */
+.type-ra { border-left: 3px solid #EC4899; } /* Активный отдых */
+.type-rp { border-left: 3px solid #6B7280; } /* Пассивный отдых */
+
+/* Status Colors */
+.status-done { opacity: 0.6; text-decoration: line-through; }
+.status-planned { border-color: var(--accent-600); }
+.status-overdue { border-color: var(--danger); background: var(--danger-100); }
+
+/* Progress Bar Colors */
+.progress-0 { background: var(--danger); }
+.progress-25 { background: #F97316; }
+.progress-50 { background: var(--warn); }
+.progress-75 { background: #10B981; }
+.progress-100 { background: var(--ok); }
