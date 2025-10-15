@@ -55,6 +55,9 @@
       max-height: 400px;
       overflow-y: auto;
       transition: min-height 0.3s ease;
+      padding: 0.5rem;
+      /* Make entire area draggable */
+      position: relative;
     }
     
     .unplanned-section .droplist:not(:empty),
@@ -65,6 +68,17 @@
     .unplanned-section .card,
     .flexible-section .card {
       transition: height 0.3s ease;
+    }
+    
+    /* Ensure entire card area is draggable */
+    .unplanned-section .card,
+    .flexible-section .card {
+      position: relative;
+    }
+    
+    .unplanned-section .card-content,
+    .flexible-section .card-content {
+      padding: 0;
     }
     
     .curves-section {
@@ -301,6 +315,92 @@
     
     .sortable-chosen {
       transform: rotate(2deg);
+    }
+    
+    /* Expand drop zones for better DnD */
+    .droplist {
+      position: relative;
+    }
+    
+    .droplist::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .droplist.sortable-drag-over {
+      background: rgba(59, 130, 246, 0.1);
+      border: 2px dashed #3B82F6;
+    }
+    
+    /* Make entire card area droppable */
+    .unplanned-section .card,
+    .flexible-section .card {
+      position: relative;
+    }
+    
+    .unplanned-section .card::after,
+    .flexible-section .card::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    /* Ensure tasks fill the available space */
+    .task {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    
+    /* Empty state styling */
+    .droplist:empty::after {
+      content: 'Drop tasks here';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--text-muted);
+      font-style: italic;
+      pointer-events: none;
+    }
+    
+    /* Improve drop zone visibility */
+    .unplanned-section .droplist,
+    .flexible-section .droplist {
+      border: 2px dashed transparent;
+      transition: all 0.2s ease;
+    }
+    
+    .unplanned-section .droplist:hover,
+    .flexible-section .droplist:hover {
+      border-color: var(--border);
+      background: rgba(59, 130, 246, 0.05);
+    }
+    
+    /* Make sure the entire card area is interactive */
+    .unplanned-section .card,
+    .flexible-section .card {
+      cursor: default;
+    }
+    
+    .unplanned-section .card .droplist,
+    .flexible-section .card .droplist {
+      cursor: grab;
+    }
+    
+    .unplanned-section .card .droplist:active,
+    .flexible-section .card .droplist:active {
+      cursor: grabbing;
     }
   </style>
   
@@ -1472,7 +1572,29 @@
           group: 'windows',
           animation: 150,
           // Remove handle restriction - make entire task draggable
+          forceFallback: false,
+          fallbackOnBody: true,
+          swapThreshold: 0.65,
+          onStart: (evt) => {
+            // Add visual feedback when dragging starts
+            evt.item.style.opacity = '0.8';
+            evt.item.style.transform = 'rotate(2deg)';
+          },
+          onMove: (evt) => {
+            // Add visual feedback during drag
+            const targetList = evt.to;
+            targetList.classList.add('sortable-drag-over');
+          },
           onEnd: (evt) => {
+            // Remove visual feedback
+            document.querySelectorAll('.droplist').forEach(list => {
+              list.classList.remove('sortable-drag-over');
+            });
+            
+            // Reset visual feedback
+            evt.item.style.opacity = '1';
+            evt.item.style.transform = 'none';
+            
             const task = evt.item;
             const targetList = evt.to;
             const sourceList = evt.from;
