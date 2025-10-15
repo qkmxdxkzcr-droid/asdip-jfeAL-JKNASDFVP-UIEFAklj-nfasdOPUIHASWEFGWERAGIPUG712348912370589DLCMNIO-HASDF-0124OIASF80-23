@@ -255,11 +255,13 @@
     }
     
     .modal-content {
-      background: var(--card-bg);
+      background: white;
       border-radius: var(--radius);
       padding: 2rem;
       width: 400px;
       max-width: 90vw;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
     
     .modal-header {
@@ -274,7 +276,7 @@
       border: none;
       font-size: 1.5rem;
       cursor: pointer;
-      color: var(--text-muted);
+      color: #6b7280;
     }
     
     .form-group {
@@ -1441,22 +1443,84 @@
     
     function renderTemplates(container) {
       container.innerHTML = `
-        <div class="templates-page">
-          <div class="templates-header">
-            <h1 class="page-title">Templates</h1>
-            <button class="btn btn-primary" onclick="openTemplateDialog()">
-              <i class="fas fa-plus"></i> Create Template
-            </button>
+        <div class="topbar">
+          <h1 class="h1">Templates</h1>
+          <div class="topbar-actions">
+            <button class="btn primary" onclick="showAddTemplateModal()">Add Template</button>
           </div>
-          
-          <div class="templates-grid" id="templates-grid">
-            <!-- Templates will be loaded here -->
+        </div>
+        
+        <div class="templates-container">
+          <div class="templates-list" id="templates-list">
+            <div class="template-card">
+              <div class="template-header">
+                <h3 class="template-name">Default Template</h3>
+                <div class="template-actions">
+                  <button class="btn btn-sm" onclick="editTemplate('default')">Edit</button>
+                  <button class="btn btn-sm danger" onclick="deleteTemplate('default')">Delete</button>
+                </div>
+              </div>
+              <div class="template-info">
+                <div class="info-item">
+                  <span class="info-label">Duration</span>
+                  <span class="info-value">16h</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Windows</span>
+                  <span class="info-value">3</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fixed Events</span>
+                  <span class="info-value">1</span>
+                </div>
+              </div>
+              <div class="template-preview">
+                <h4>Schedule Preview:</h4>
+                <div class="schedule-blocks" id="template-blocks">
+                  <div class="schedule-block window-block" data-type="window">
+                    <div class="block-header">
+                      <span class="block-title">Morning</span>
+                      <span class="block-time">08:00 - 12:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                  <div class="schedule-block window-block" data-type="window">
+                    <div class="block-header">
+                      <span class="block-title">Afternoon</span>
+                      <span class="block-time">12:00 - 17:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                  <div class="schedule-block fixed-block" data-type="fixed">
+                    <div class="block-header">
+                      <span class="block-title">Lunch</span>
+                      <span class="block-time">12:00 - 13:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="template-actions">
+                  <button class="btn btn-sm" onclick="addWindowBlock()">Add Window</button>
+                  <button class="btn btn-sm" onclick="addFixedBlock()">Add Fixed Event</button>
+                  <button class="btn btn-sm primary" onclick="applyTemplate('default')">Apply to Today</button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       `;
       
-      // Load templates from storage
-      loadTemplates();
+      // Initialize template DnD
+      initTemplateDnD();
     }
     
     function renderImport(container) {
@@ -2426,380 +2490,144 @@
       }
     }
     
-    // ===== TEMPLATE FUNCTIONS =====
-    
-    let templates = [];
-    let currentTemplate = null;
-    let templateDialog = null;
-    
-    // Load templates from localStorage
-    function loadTemplates() {
-      const stored = localStorage.getItem('templates');
-      if (stored) {
-        templates = JSON.parse(stored);
-      } else {
-        // Create default template
-        templates = [{
-          id: 'default',
-          name: 'Default Template',
-          active: true,
-          brackets: [
-            { type: 'window', name: 'Morning', start_time: '08:00', end_time: '12:00', color: '#4F46E5', lock: 'soft' },
-            { type: 'fixed', name: 'Lunch', start_time: '12:00', end_time: '13:00', color: '#F97316', lock: 'hard' },
-            { type: 'window', name: 'Afternoon', start_time: '13:00', end_time: '17:00', color: '#10B981', lock: 'soft' },
-            { type: 'flexible', name: 'Evening', color: '#8B5CF6', lock: 'soft' }
-          ]
-        }];
-        saveTemplates();
-      }
-      renderTemplatesGrid();
-    }
-    
-    // Save templates to localStorage
-    function saveTemplates() {
-      localStorage.setItem('templates', JSON.stringify(templates));
-    }
-    
-    // Render templates grid
-    function renderTemplatesGrid() {
-      const grid = document.getElementById('templates-grid');
-      if (!grid) return;
-      
-      grid.innerHTML = templates.map(template => `
-        <div class="template-card" onclick="openTemplateDialog('${template.id}')">
-          <div class="template-header">
-            <h3 class="template-name">${template.name}</h3>
-            <div class="template-status ${template.active ? 'active' : 'inactive'}">
-              ${template.active ? 'Active' : 'Inactive'}
-            </div>
+    // Show add template modal
+    function showAddTemplateModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Template</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
           </div>
-          <div class="template-info">
-            <div class="info-item">
-              <span class="info-label">Blocks</span>
-              <span class="info-value">${template.brackets.length}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Windows</span>
-              <span class="info-value">${template.brackets.filter(b => b.type === 'window').length}</span>
-            </div>
-            <div class="info-item">
-              <span class="info-label">Fixed</span>
-              <span class="info-value">${template.brackets.filter(b => b.type === 'fixed').length}</span>
-            </div>
-          </div>
-          <div class="template-preview">
-            <div class="preview-title">Preview:</div>
-            <div class="preview-blocks">
-              ${template.brackets.slice(0, 5).map(block => `
-                <div class="preview-block ${block.type}">
-                  <div class="block-color" style="background-color: ${block.color}"></div>
-                  <span>${block.name}</span>
-                  ${block.start_time ? `<span>${block.start_time}-${block.end_time}</span>` : ''}
-                </div>
-              `).join('')}
-              ${template.brackets.length > 5 ? `<span class="preview-block">+${template.brackets.length - 5} more</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `).join('');
-    }
-    
-    // Open template dialog
-    function openTemplateDialog(templateId = null) {
-      currentTemplate = templateId ? templates.find(t => t.id === templateId) : null;
-      
-      templateDialog = document.createElement('div');
-      templateDialog.className = 'template-dialog';
-      templateDialog.innerHTML = `
-        <div class="template-dialog-content">
-          <div class="template-dialog-header">
-            <h2 class="template-dialog-title">${currentTemplate ? 'Edit Template' : 'Create Template'}</h2>
-            <button class="template-dialog-close" onclick="closeTemplateDialog()">&times;</button>
-          </div>
-          <div class="template-dialog-body">
-            <form class="template-form" id="template-form" onsubmit="saveTemplate(event)">
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Template Name</label>
-                  <input type="text" class="form-input" name="name" value="${currentTemplate?.name || ''}" required>
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Status</label>
-                  <div class="form-switch">
-                    <div class="switch ${currentTemplate?.active ? 'active' : ''}" onclick="toggleSwitch(this)">
-                      <div class="switch-thumb"></div>
-                    </div>
-                    <span>Active</span>
-                  </div>
-                </div>
-              </div>
-              
-              <div class="blocks-section">
-                <div class="blocks-header">
-                  <h3 class="blocks-title">Day Blocks</h3>
-                  <div>
-                    <button type="button" class="add-block-btn" onclick="addBlock('window')">
-                      <i class="fas fa-plus"></i> Add Window
-                    </button>
-                    <button type="button" class="add-block-btn" onclick="addBlock('fixed')" style="margin-left: 0.5rem;">
-                      <i class="fas fa-plus"></i> Add Fixed
-                    </button>
-                    <button type="button" class="add-block-btn" onclick="addBlock('flexible')" style="margin-left: 0.5rem;">
-                      <i class="fas fa-plus"></i> Add Flexible
-                    </button>
-                  </div>
-                </div>
-                <div class="blocks-list" id="blocks-list">
-                  ${currentTemplate ? currentTemplate.brackets.map((block, index) => renderBlock(block, index)).join('') : ''}
-                </div>
-              </div>
-            </form>
-          </div>
-          <div class="template-dialog-footer">
-            <button type="button" class="btn" onclick="closeTemplateDialog()">Cancel</button>
-            <button type="button" class="btn btn-danger" onclick="deleteTemplate()" ${!currentTemplate ? 'style="display: none;"' : ''}>Delete</button>
-            <button type="submit" class="btn btn-primary" form="template-form">Save Template</button>
-          </div>
-        </div>
-      `;
-      
-      document.body.appendChild(templateDialog);
-      
-      // Initialize DnD for blocks
-      setTimeout(() => {
-        initBlocksDnD();
-      }, 100);
-    }
-    
-    // Close template dialog
-    function closeTemplateDialog() {
-      if (templateDialog) {
-        templateDialog.remove();
-        templateDialog = null;
-        currentTemplate = null;
-      }
-    }
-    
-    // Toggle switch
-    function toggleSwitch(switchEl) {
-      switchEl.classList.toggle('active');
-    }
-    
-    // Add block
-    function addBlock(type) {
-      const blocksList = document.getElementById('blocks-list');
-      const blockIndex = blocksList.children.length;
-      const block = {
-        type,
-        name: `New ${type === 'window' ? 'Window' : type === 'fixed' ? 'Fixed Event' : 'Flexible Block'}`,
-        start_time: type === 'flexible' ? '' : '09:00',
-        end_time: type === 'flexible' ? '' : '10:00',
-        color: getDefaultColor(type),
-        lock: 'soft'
-      };
-      
-      const blockEl = document.createElement('div');
-      blockEl.className = 'block-card';
-      blockEl.innerHTML = renderBlock(block, blockIndex);
-      blocksList.appendChild(blockEl);
-      
-      // Reinitialize DnD
-      initBlocksDnD();
-    }
-    
-    // Render block
-    function renderBlock(block, index) {
-      return `
-        <div class="block-card" data-index="${index}">
-          <div class="block-header">
-            <div class="drag-handle">⋮⋮</div>
-            <div class="block-type-badge ${block.type}">${block.type === 'window' ? 'Window' : block.type === 'fixed' ? 'Fixed' : 'Flexible'}</div>
-            <button type="button" class="block-remove" onclick="removeBlock(this)">&times;</button>
-          </div>
-          <div class="block-form">
+          <form onsubmit="addTemplate(event)">
             <div class="form-group">
-              <label class="form-label">Name</label>
-              <input type="text" class="form-input" name="name" value="${block.name}" required>
-            </div>
-            ${block.type !== 'flexible' ? `
-              <div class="form-group">
-                <label class="form-label">Start Time</label>
-                <input type="time" class="form-input" name="start_time" value="${block.start_time}">
-              </div>
-              <div class="form-group">
-                <label class="form-label">End Time</label>
-                <input type="time" class="form-input" name="end_time" value="${block.end_time}">
-              </div>
-            ` : ''}
-            <div class="form-group">
-              <label class="form-label">Color</label>
-              <div class="color-picker">
-                ${getColorOptions(block.color)}
-              </div>
+              <label class="form-label">Template Name</label>
+              <input type="text" class="form-input" name="name" required>
             </div>
             <div class="form-group">
-              <label class="form-label">Lock Type</label>
-              <select class="form-select" name="lock">
-                <option value="soft" ${block.lock === 'soft' ? 'selected' : ''}>Soft</option>
-                <option value="hard" ${block.lock === 'hard' ? 'selected' : ''}>Hard</option>
-              </select>
+              <label class="form-label">Day Start (HH:MM)</label>
+              <input type="time" class="form-input" name="startTime" value="08:00" required>
             </div>
-          </div>
+            <div class="form-group">
+              <label class="form-label">Day Duration (hours)</label>
+              <input type="number" class="form-input" name="duration" min="1" max="24" value="16" required>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn" onclick="this.closest('.modal').remove()">Cancel</button>
+              <button type="submit" class="btn primary">Create Template</button>
+            </div>
+          </form>
         </div>
       `;
+      document.body.appendChild(modal);
     }
     
-    // Get default color for block type
-    function getDefaultColor(type) {
-      const colors = {
-        window: '#4F46E5',
-        fixed: '#F97316',
-        flexible: '#8B5CF6'
-      };
-      return colors[type] || '#6B7280';
-    }
-    
-    // Get color options
-    function getColorOptions(selectedColor) {
-      const colors = [
-        '#4F46E5', '#F97316', '#10B981', '#8B5CF6',
-        '#EF4444', '#06B6D4', '#84CC16', '#F59E0B',
-        '#EC4899', '#6366F1', '#14B8A6', '#F43F5E'
-      ];
-      
-      return colors.map(color => `
-        <div class="color-option ${color === selectedColor ? 'selected' : ''}" 
-             style="background-color: ${color}" 
-             data-color="${color}"
-             onclick="selectColor(this, '${color}')"></div>
-      `).join('') + `
-        <div class="color-option custom" onclick="openCustomColor()"></div>
-      `;
-    }
-    
-    // Select color
-    function selectColor(element, color) {
-      // Remove previous selection
-      element.parentElement.querySelectorAll('.color-option').forEach(el => {
-        el.classList.remove('selected');
-      });
-      
-      // Select new color
-      element.classList.add('selected');
-      
-      // Update block color
-      const blockCard = element.closest('.block-card');
-      const colorInput = blockCard.querySelector('input[name="color"]');
-      if (colorInput) {
-        colorInput.value = color;
-      }
-    }
-    
-    // Remove block
-    function removeBlock(button) {
-      if (confirm('Delete this block?')) {
-        button.closest('.block-card').remove();
-      }
-    }
-    
-    // Initialize blocks DnD
-    function initBlocksDnD() {
-      if (typeof Sortable === 'undefined') return;
-      
-      const blocksList = document.getElementById('blocks-list');
-      if (blocksList) {
-        new Sortable(blocksList, {
-          animation: 150,
-          handle: '.drag-handle',
-          ghostClass: 'dragging',
-          onEnd: (evt) => {
-            console.log('Block moved');
-            // Update data-index attributes
-            Array.from(blocksList.children).forEach((el, index) => {
-              el.dataset.index = index;
-            });
-          }
-        });
-      }
-    }
-    
-    // Save template
-    function saveTemplate(event) {
+    // Add template
+    function addTemplate(event) {
       event.preventDefault();
-      
       const formData = new FormData(event.target);
       const name = formData.get('name');
-      const active = templateDialog.querySelector('.switch.active') !== null;
+      const startTime = formData.get('startTime');
+      const duration = formData.get('duration');
       
-      // Collect blocks
-      const blocks = Array.from(templateDialog.querySelectorAll('.block-card')).map((card, index) => {
-        const inputs = card.querySelectorAll('input, select');
-        const block = {};
-        inputs.forEach(input => {
-          block[input.name] = input.value;
-        });
-        
-        // Get selected color
-        const selectedColor = card.querySelector('.color-option.selected');
-        if (selectedColor) {
-          const color = selectedColor.getAttribute('data-color');
-          if (color) {
-            block.color = color;
-          }
-        }
-        
-        return block;
-      });
-      
-      // Validate
-      if (!name.trim()) {
-        alert('Template name is required');
-        return;
-      }
-      
-      if (blocks.length === 0) {
-        alert('At least one block is required');
-        return;
-      }
-      
-      // Create or update template
-      const template = {
-        id: currentTemplate?.id || generateId(),
-        name: name.trim(),
-        active,
-        brackets: blocks
-      };
-      
-      if (currentTemplate) {
-        const index = templates.findIndex(t => t.id === currentTemplate.id);
-        templates[index] = template;
-      } else {
-        templates.push(template);
-      }
-      
-      saveTemplates();
-      closeTemplateDialog();
-      renderTemplatesGrid();
-      
-      console.log('Template saved:', template);
+      alert(`Template "${name}" created! Start: ${startTime}, Duration: ${duration}h`);
+      event.target.closest('.modal').remove();
+    }
+    
+    // Edit template
+    function editTemplate(templateId) {
+      alert(`Edit template: ${templateId}`);
     }
     
     // Delete template
-    function deleteTemplate() {
-      if (!currentTemplate) return;
-      
-      if (confirm(`Delete template "${currentTemplate.name}"? This cannot be undone.`)) {
-        templates = templates.filter(t => t.id !== currentTemplate.id);
-        saveTemplates();
-        closeTemplateDialog();
-        renderTemplatesGrid();
+    function deleteTemplate(templateId) {
+      if (confirm(`Delete template: ${templateId}?`)) {
+        alert(`Template ${templateId} deleted!`);
       }
     }
     
-    // Generate ID
-    function generateId() {
-      return 'template_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    // Add window block
+    function addWindowBlock() {
+      const blocks = document.getElementById('template-blocks');
+      const block = document.createElement('div');
+      block.className = 'schedule-block window-block';
+      block.dataset.type = 'window';
+      block.innerHTML = `
+        <div class="block-header">
+          <span class="block-title">New Window</span>
+          <span class="block-time">09:00 - 10:00</span>
+        </div>
+        <div class="block-actions">
+          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+        </div>
+      `;
+      blocks.appendChild(block);
     }
+    
+    // Add fixed block
+    function addFixedBlock() {
+      const blocks = document.getElementById('template-blocks');
+      const block = document.createElement('div');
+      block.className = 'schedule-block fixed-block';
+      block.dataset.type = 'fixed';
+      block.innerHTML = `
+        <div class="block-header">
+          <span class="block-title">New Fixed Event</span>
+          <span class="block-time">10:00 - 11:00</span>
+        </div>
+        <div class="block-actions">
+          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+        </div>
+      `;
+      blocks.appendChild(block);
+    }
+    
+    // Edit block
+    function editBlock(button) {
+      const block = button.closest('.schedule-block');
+      const title = block.querySelector('.block-title').textContent;
+      const time = block.querySelector('.block-time').textContent;
+      
+      const newTitle = prompt('Block title:', title);
+      const newTime = prompt('Block time (HH:MM - HH:MM):', time);
+      
+      if (newTitle && newTime) {
+        block.querySelector('.block-title').textContent = newTitle;
+        block.querySelector('.block-time').textContent = newTime;
+      }
+    }
+    
+    // Delete block
+    function deleteBlock(button) {
+      if (confirm('Delete this block?')) {
+        button.closest('.schedule-block').remove();
+      }
+    }
+    
+    // Apply template
+    function applyTemplate(templateId) {
+      alert(`Template ${templateId} applied to today!`);
+    }
+    
+    // Initialize template DnD
+    function initTemplateDnD() {
+      if (typeof Sortable === 'undefined') return;
+      
+      const blocks = document.getElementById('template-blocks');
+      if (blocks) {
+        new Sortable(blocks, {
+          animation: 150,
+          handle: '.block-header',
+          onEnd: (evt) => {
+            console.log('Template block moved');
+          }
+        });
+      }
+    }
+    
     
     // ===== CALENDAR FUNCTIONS =====
     
@@ -3055,4 +2883,5 @@
   </script>
 </body>
 </html>
+
 
