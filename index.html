@@ -69,6 +69,8 @@
     .task:hover{ transform:translateY(-1px); border-color:color-mix(in oklab, var(--accent-600) 22%, var(--border)); }
     .task button.del{ margin-left:auto; border:none; background:transparent; color:var(--text-muted); cursor:pointer; }
     .task button.del:hover{ color:var(--danger); }
+    .task.dragging{ opacity:0.5; transform:rotate(5deg); }
+    .droplist.drag-over{ background:var(--accent-25); border:2px dashed var(--accent-600); }
     .fixed{ background:#F4F6FB; }
     /* Curves */
     .curves{ margin-top:16px; }
@@ -225,7 +227,12 @@
         <span class="priority ${prClass(t.pr)}">${t.pr}</span>
         <button class="del" title="Удалить">&times;</button>
       `;
-      el.querySelector('.del').onclick = ()=> el.remove() || recalcAll();
+      el.querySelector('.del').onclick = ()=> {
+        el.remove();
+        recalcAll();
+        // Reinitialize sortables after removing task
+        setTimeout(initSortables, 100);
+      };
       return el;
     }
 
@@ -242,30 +249,52 @@
       unp.appendChild(renderTask(t));
       document.getElementById('newTitle').value='';
       recalcAll();
+      // Reinitialize sortables after adding new task
+      setTimeout(initSortables, 100);
     };
 
     // ---- SortableJS init (DnD across lists, touch-ready) ----
-    const lists = Array.from(document.querySelectorAll('.droplist'));
-    const sortables = lists.map(list => new Sortable(list, {
-      group: 'windows',
-      animation: 150,
-      handle: '.drag-handle',
-      ghostClass: 'dragging',
-      onEnd: (evt) => {
-        // capacity validation
-        const listEl = evt.to;
-        const total = +listEl.dataset.total;
-        const used = sumMinutes(listEl);
-        const over = used - total;
-        if (over > 3 && listEl.id !== 'unplanned'){ // ε=3 мин
-          // revert by moving back
-          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
-          // toast
-          flash(listEl, `Не помещается: превышение на ${over} мин`);
+    let sortables = [];
+    
+    function initSortables() {
+      // Destroy existing sortables
+      sortables.forEach(sortable => sortable.destroy());
+      sortables = [];
+      
+      // Reinitialize all lists
+      const lists = Array.from(document.querySelectorAll('.droplist'));
+      sortables = lists.map(list => new Sortable(list, {
+        group: 'windows',
+        animation: 150,
+        handle: '.drag-handle',
+        ghostClass: 'dragging',
+        chosenClass: 'dragging',
+        dragClass: 'dragging',
+        onStart: (evt) => {
+          evt.to.classList.add('drag-over');
+        },
+        onEnd: (evt) => {
+          evt.to.classList.remove('drag-over');
+          // capacity validation
+          const listEl = evt.to;
+          const total = +listEl.dataset.total;
+          const used = sumMinutes(listEl);
+          const over = used - total;
+          if (over > 3 && listEl.id !== 'unplanned'){ // ε=3 мин
+            // revert by moving back
+            evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
+            // toast
+            flash(listEl, `Не помещается: превышение на ${over} мин`);
+          }
+          recalcAll();
+          // Reinitialize sortables after DOM changes
+          setTimeout(initSortables, 100);
         }
-        recalcAll();
-      }
-    }));
+      }));
+    }
+    
+    // Initial setup
+    initSortables();
 
     function sumMinutes(listEl){
       return Array.from(listEl.children).reduce((acc,el)=>acc + (+el.dataset.minutes||0), 0);
