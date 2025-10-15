@@ -27,11 +27,27 @@
     .nav-item{
       position:relative; display:flex; align-items:center; gap:10px;
       padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none;
+      overflow:hidden;
     }
     .nav-item:hover{ background:var(--accent-25); color:var(--text); }
     .nav-item.active{ color:var(--accent-600); background:color-mix(in oklab, var(--accent-25) 80%, var(--panel)); }
     .nav-item.active::before{
       content:""; position:absolute; left:0; top:0; width:3px; height:100%; background:var(--accent-600); border-radius:0 4px 4px 0;
+    }
+    
+    /* Sticky navigation shimmer effect */
+    .nav-item::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+      transition: left 0.6s ease;
+    }
+    .nav-item:hover::after {
+      left: 100%;
     }
     .content{ flex:1; padding:20px; max-width:1440px; margin:0 auto; }
     .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px;}
@@ -62,6 +78,73 @@
     .task .meta{ font-size:12px; color:var(--text-muted); margin-top:2px;}
     .drag-handle{ opacity:.4; font-size:12px; }
     .task:active{ cursor:grabbing; }
+    
+    /* Animated checkbox for tasks */
+    .task-checkbox {
+      position: relative;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    
+    .task-checkbox input {
+      opacity: 0;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    .task-checkbox .checkmark {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 20px;
+      width: 20px;
+      background-color: transparent;
+      border: 2px solid var(--text-muted);
+      border-radius: 4px;
+      transition: all 0.3s ease;
+    }
+    
+    .task-checkbox:hover .checkmark {
+      border-color: var(--accent-600);
+      background-color: var(--accent-25);
+    }
+    
+    .task-checkbox input:checked ~ .checkmark {
+      background-color: var(--accent-600);
+      border-color: var(--accent-600);
+    }
+    
+    .task-checkbox .checkmark:after {
+      content: "";
+      position: absolute;
+      display: none;
+      left: 6px;
+      top: 2px;
+      width: 6px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2px 2px 0;
+      transform: rotate(45deg);
+    }
+    
+    .task-checkbox input:checked ~ .checkmark:after {
+      display: block;
+    }
+    
+    .task-checkbox input:checked ~ .checkmark {
+      animation: checkmark-bounce 0.6s ease;
+    }
+    
+    @keyframes checkmark-bounce {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.2); }
+      100% { transform: scale(1); }
+    }
     .task .del{ cursor:pointer; background:none; border:none; font-size:18px; color:var(--text-muted); 
                 padding:4px; border-radius:4px; transition:all 0.2s; }
     .task .del:hover{ background:var(--danger-100); color:var(--danger-600); }
@@ -223,6 +306,10 @@
       el.dataset.id = t.id;
       el.dataset.minutes = t.minutes;
       el.innerHTML = `
+        <div class="task-checkbox">
+          <input type="checkbox" onchange="toggleTaskCompletion(this)">
+          <span class="checkmark"></span>
+        </div>
         <div class="drag-handle">⋮⋮</div>
         <div style="flex:1; min-width:0;">
           <div class="title">${t.title}</div>
@@ -232,6 +319,25 @@
         <button class="del" title="Удалить" onclick="this.closest('.task').remove(); recalcAll();">&times;</button>
       `;
       return el;
+    }
+
+    // Task completion toggle function
+    function toggleTaskCompletion(checkbox) {
+      const task = checkbox.closest('.task');
+      const title = task.querySelector('.title');
+      
+      if (checkbox.checked) {
+        task.style.opacity = '0.6';
+        title.style.textDecoration = 'line-through';
+        title.style.color = 'var(--text-muted)';
+      } else {
+        task.style.opacity = '1';
+        title.style.textDecoration = 'none';
+        title.style.color = 'var(--text)';
+      }
+      
+      // Recalculate progress for the current window
+      recalcAll();
     }
 
     // mount initial tasks into unplanned
@@ -355,7 +461,11 @@
     });
 
     function sumMinutes(listEl){
-      return Array.from(listEl.children).reduce((acc,el)=>acc + (+el.dataset.minutes||0), 0);
+      return Array.from(listEl.children).reduce((acc,el)=>{
+        const checkbox = el.querySelector('.task-checkbox input');
+        const isCompleted = checkbox && checkbox.checked;
+        return acc + (isCompleted ? 0 : (+el.dataset.minutes||0));
+      }, 0);
     }
     function recalcAll(){
       document.querySelectorAll('.droplist').forEach(listEl => {
