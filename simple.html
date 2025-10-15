@@ -139,6 +139,133 @@
     .priority-p2 { color: #F97316; }
     .priority-p3 { color: #EAB308; }
     .priority-p4 { color: #22C55E; }
+    
+    /* Template Styles */
+    .template-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .template-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .template-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .schedule-blocks {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin: 1rem 0;
+    }
+    
+    .schedule-block {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      background: var(--input-bg);
+    }
+    
+    .window-block {
+      border-left: 4px solid #3B82F6;
+    }
+    
+    .fixed-block {
+      border-left: 4px solid #EF4444;
+    }
+    
+    .block-header {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .block-title {
+      font-weight: 500;
+    }
+    
+    .block-time {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+    
+    .block-actions {
+      display: flex;
+      gap: 0.25rem;
+    }
+    
+    .btn-xs {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    
+    /* Calendar Styles */
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 1px;
+      background: var(--border);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    
+    .calendar-header {
+      background: var(--card-bg);
+      padding: 0.5rem;
+      text-align: center;
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .calendar-cell {
+      background: var(--card-bg);
+      padding: 0.5rem;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    
+    .calendar-cell.other-month {
+      background: var(--input-bg);
+      color: var(--text-muted);
+    }
+    
+    .calendar-cell.today {
+      background: var(--primary-light);
+      border: 2px solid var(--primary);
+    }
+    
+    .calendar-day {
+      font-weight: 500;
+      font-size: 0.875rem;
+    }
+    
+    .calendar-stats {
+      font-size: 0.75rem;
+      margin-top: auto;
+    }
+    
+    .calendar-stats .done {
+      font-weight: 500;
+    }
+    
+    .calendar-stats .total {
+      color: var(--text-muted);
+    }
   </style>
   
   <!-- External Libraries -->
@@ -412,7 +539,7 @@
       `;
       
       // Initialize DnD
-      initDnD();
+      initEnhancedDnD();
       
       // Initialize curves
       initCurves();
@@ -473,13 +600,21 @@
       container.innerHTML = `
         <div class="topbar">
           <h1 class="h1">Calendar</h1>
+          <div class="topbar-actions">
+            <button class="btn" onclick="prevMonth()">← Prev</button>
+            <span id="current-month">October 2025</span>
+            <button class="btn" onclick="nextMonth()">Next →</button>
+          </div>
         </div>
         <div class="calendar-container">
-          <div class="calendar-grid">
+          <div class="calendar-grid" id="calendar-grid">
             <!-- Calendar will be rendered here -->
           </div>
         </div>
       `;
+      
+      // Initialize calendar
+      renderCalendarGrid();
     }
     
     function renderTemplates(container) {
@@ -487,31 +622,81 @@
         <div class="topbar">
           <h1 class="h1">Templates</h1>
           <div class="topbar-actions">
-            <button class="btn primary" onclick="alert('Add template')">Add Template</button>
+            <button class="btn primary" onclick="showAddTemplateModal()">Add Template</button>
           </div>
         </div>
-        <div class="templates-list">
-          <div class="template-card">
-            <div class="template-header">
-              <h3 class="template-name">Default Template</h3>
-            </div>
-            <div class="template-info">
-              <div class="info-item">
-                <span class="info-label">Duration</span>
-                <span class="info-value">16h</span>
+        
+        <div class="templates-container">
+          <div class="templates-list" id="templates-list">
+            <div class="template-card">
+              <div class="template-header">
+                <h3 class="template-name">Default Template</h3>
+                <div class="template-actions">
+                  <button class="btn btn-sm" onclick="editTemplate('default')">Edit</button>
+                  <button class="btn btn-sm danger" onclick="deleteTemplate('default')">Delete</button>
+                </div>
               </div>
-              <div class="info-item">
-                <span class="info-label">Windows</span>
-                <span class="info-value">3</span>
+              <div class="template-info">
+                <div class="info-item">
+                  <span class="info-label">Duration</span>
+                  <span class="info-value">16h</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Windows</span>
+                  <span class="info-value">3</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">Fixed Events</span>
+                  <span class="info-value">1</span>
+                </div>
               </div>
-              <div class="info-item">
-                <span class="info-label">Fixed Events</span>
-                <span class="info-value">1</span>
+              <div class="template-preview">
+                <h4>Schedule Preview:</h4>
+                <div class="schedule-blocks" id="template-blocks">
+                  <div class="schedule-block window-block" data-type="window">
+                    <div class="block-header">
+                      <span class="block-title">Morning</span>
+                      <span class="block-time">08:00 - 12:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                  <div class="schedule-block window-block" data-type="window">
+                    <div class="block-header">
+                      <span class="block-title">Afternoon</span>
+                      <span class="block-time">12:00 - 17:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                  <div class="schedule-block fixed-block" data-type="fixed">
+                    <div class="block-header">
+                      <span class="block-title">Lunch</span>
+                      <span class="block-time">12:00 - 13:00</span>
+                    </div>
+                    <div class="block-actions">
+                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="template-actions">
+                  <button class="btn btn-sm" onclick="addWindowBlock()">Add Window</button>
+                  <button class="btn btn-sm" onclick="addFixedBlock()">Add Fixed Event</button>
+                  <button class="btn btn-sm primary" onclick="applyTemplate('default')">Apply to Today</button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       `;
+      
+      // Initialize template DnD
+      initTemplateDnD();
     }
     
     function renderImport(container) {
@@ -946,6 +1131,366 @@
           progressFill.style.backgroundColor = '#22C55E';
         }
       });
+    }
+    
+    // ===== TEMPLATE FUNCTIONS =====
+    
+    // Show add template modal
+    function showAddTemplateModal() {
+      const modal = document.createElement('div');
+      modal.className = 'modal';
+      modal.innerHTML = `
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3>Add Template</h3>
+            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+          </div>
+          <form onsubmit="addTemplate(event)">
+            <div class="form-group">
+              <label class="form-label">Template Name</label>
+              <input type="text" class="form-input" name="name" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Day Start (HH:MM)</label>
+              <input type="time" class="form-input" name="startTime" value="08:00" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Day Duration (hours)</label>
+              <input type="number" class="form-input" name="duration" min="1" max="24" value="16" required>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn" onclick="this.closest('.modal').remove()">Cancel</button>
+              <button type="submit" class="btn primary">Create Template</button>
+            </div>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    }
+    
+    // Add template
+    function addTemplate(event) {
+      event.preventDefault();
+      const formData = new FormData(event.target);
+      const name = formData.get('name');
+      const startTime = formData.get('startTime');
+      const duration = formData.get('duration');
+      
+      alert(`Template "${name}" created! Start: ${startTime}, Duration: ${duration}h`);
+      event.target.closest('.modal').remove();
+    }
+    
+    // Edit template
+    function editTemplate(templateId) {
+      alert(`Edit template: ${templateId}`);
+    }
+    
+    // Delete template
+    function deleteTemplate(templateId) {
+      if (confirm(`Delete template: ${templateId}?`)) {
+        alert(`Template ${templateId} deleted!`);
+      }
+    }
+    
+    // Add window block
+    function addWindowBlock() {
+      const blocks = document.getElementById('template-blocks');
+      const block = document.createElement('div');
+      block.className = 'schedule-block window-block';
+      block.dataset.type = 'window';
+      block.innerHTML = `
+        <div class="block-header">
+          <span class="block-title">New Window</span>
+          <span class="block-time">09:00 - 10:00</span>
+        </div>
+        <div class="block-actions">
+          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+        </div>
+      `;
+      blocks.appendChild(block);
+    }
+    
+    // Add fixed block
+    function addFixedBlock() {
+      const blocks = document.getElementById('template-blocks');
+      const block = document.createElement('div');
+      block.className = 'schedule-block fixed-block';
+      block.dataset.type = 'fixed';
+      block.innerHTML = `
+        <div class="block-header">
+          <span class="block-title">New Fixed Event</span>
+          <span class="block-time">10:00 - 11:00</span>
+        </div>
+        <div class="block-actions">
+          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
+          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
+        </div>
+      `;
+      blocks.appendChild(block);
+    }
+    
+    // Edit block
+    function editBlock(button) {
+      const block = button.closest('.schedule-block');
+      const title = block.querySelector('.block-title').textContent;
+      const time = block.querySelector('.block-time').textContent;
+      
+      const newTitle = prompt('Block title:', title);
+      const newTime = prompt('Block time (HH:MM - HH:MM):', time);
+      
+      if (newTitle && newTime) {
+        block.querySelector('.block-title').textContent = newTitle;
+        block.querySelector('.block-time').textContent = newTime;
+      }
+    }
+    
+    // Delete block
+    function deleteBlock(button) {
+      if (confirm('Delete this block?')) {
+        button.closest('.schedule-block').remove();
+      }
+    }
+    
+    // Apply template
+    function applyTemplate(templateId) {
+      alert(`Template ${templateId} applied to today!`);
+    }
+    
+    // Initialize template DnD
+    function initTemplateDnD() {
+      if (typeof Sortable === 'undefined') return;
+      
+      const blocks = document.getElementById('template-blocks');
+      if (blocks) {
+        new Sortable(blocks, {
+          animation: 150,
+          handle: '.block-header',
+          onEnd: (evt) => {
+            console.log('Template block moved');
+          }
+        });
+      }
+    }
+    
+    // ===== CALENDAR FUNCTIONS =====
+    
+    let currentDate = new Date();
+    
+    // Render calendar grid
+    function renderCalendarGrid() {
+      const grid = document.getElementById('calendar-grid');
+      const month = currentDate.getMonth();
+      const year = currentDate.getFullYear();
+      
+      // Update month display
+      const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+      document.getElementById('current-month').textContent = `${monthNames[month]} ${year}`;
+      
+      // Clear grid
+      grid.innerHTML = '';
+      
+      // Add day headers
+      const dayHeaders = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      dayHeaders.forEach(day => {
+        const header = document.createElement('div');
+        header.className = 'calendar-header';
+        header.textContent = day;
+        grid.appendChild(header);
+      });
+      
+      // Get first day of month and first Monday
+      const firstDay = new Date(year, month, 1);
+      const firstMonday = new Date(firstDay);
+      firstMonday.setDate(firstDay.getDate() - ((firstDay.getDay() + 6) % 7));
+      
+      // Generate 42 days (6 weeks)
+      for (let i = 0; i < 42; i++) {
+        const date = new Date(firstMonday);
+        date.setDate(firstMonday.getDate() + i);
+        
+        const cell = document.createElement('div');
+        cell.className = 'calendar-cell';
+        
+        const isCurrentMonth = date.getMonth() === month;
+        const isToday = date.toDateString() === new Date().toDateString();
+        
+        if (!isCurrentMonth) cell.classList.add('other-month');
+        if (isToday) cell.classList.add('today');
+        
+        // Generate random stats for demo
+        const total = Math.floor(Math.random() * 8) + 1;
+        const done = Math.floor(Math.random() * (total + 1));
+        const ratio = total > 0 ? done / total : 0;
+        
+        cell.innerHTML = `
+          <div class="calendar-day">${date.getDate()}</div>
+          <div class="calendar-stats">
+            <span class="done" style="color: ${getCompletionColor(ratio)}">${done}</span>
+            <span class="total">/${total}</span>
+          </div>
+        `;
+        
+        grid.appendChild(cell);
+      }
+    }
+    
+    // Get completion color
+    function getCompletionColor(ratio) {
+      if (ratio >= 1) return '#22C55E';
+      if (ratio >= 0.8) return '#10B981';
+      if (ratio >= 0.6) return '#EAB308';
+      if (ratio >= 0.4) return '#F97316';
+      return '#EF4444';
+    }
+    
+    // Previous month
+    function prevMonth() {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      renderCalendarGrid();
+    }
+    
+    // Next month
+    function nextMonth() {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      renderCalendarGrid();
+    }
+    
+    // ===== ENHANCED DnD LOGIC =====
+    
+    // Enhanced DnD with validation
+    function initEnhancedDnD() {
+      if (typeof Sortable === 'undefined') return;
+      
+      document.querySelectorAll('.droplist').forEach(listEl => {
+        new Sortable(listEl, {
+          group: 'windows',
+          animation: 150,
+          handle: '.drag-handle',
+          onEnd: (evt) => {
+            const task = evt.item;
+            const targetList = evt.to;
+            const sourceList = evt.from;
+            
+            // Get task minutes
+            const minutes = parseInt(task.querySelector('.minutes').textContent);
+            
+            // Check if target is a window (not unplanned/flexible)
+            if (targetList.classList.contains('window-tasks')) {
+              const total = parseInt(targetList.dataset.total);
+              const used = parseInt(targetList.dataset.used);
+              
+              // Check capacity
+              if (used + minutes > total + 3) { // 3 min tolerance
+                // Revert move
+                sourceList.insertBefore(task, sourceList.children[evt.oldIndex]);
+                alert(`Task doesn't fit! Window capacity: ${total}min, Used: ${used}min, Task: ${minutes}min`);
+                return;
+              }
+            }
+            
+            // Update statistics
+            updateWindowStats();
+            console.log('Task moved successfully');
+          }
+        });
+      });
+    }
+    
+    // ===== OTHER MISSING FUNCTIONS =====
+    
+    // Import functions
+    function parseImport() {
+      const textarea = document.getElementById('import-text');
+      const text = textarea.value;
+      
+      if (!text.trim()) {
+        alert('Please enter some tasks to import');
+        return;
+      }
+      
+      const lines = text.split('\n').filter(line => line.trim());
+      let imported = 0;
+      
+      lines.forEach(line => {
+        // Simple parsing: "Task @30m #P2"
+        const match = line.match(/^(.+?)\s*@(\d+)m\s*#(P[1-4])$/);
+        if (match) {
+          const [, title, minutes, priority] = match;
+          const unplannedList = document.getElementById('unplanned');
+          if (unplannedList) {
+            const taskElement = createTaskElement(title, minutes, priority);
+            unplannedList.appendChild(taskElement);
+            imported++;
+          }
+        }
+      });
+      
+      alert(`Imported ${imported} tasks!`);
+      updateWindowStats();
+    }
+    
+    function importTasks() {
+      parseImport();
+    }
+    
+    // Statistics functions
+    function updateStats() {
+      // This would update statistics in real-time
+      console.log('Stats updated');
+    }
+    
+    // Base tasks functions
+    function addBaseTask() {
+      alert('Add base task functionality');
+    }
+    
+    function editBaseTask(id) {
+      alert(`Edit base task: ${id}`);
+    }
+    
+    function deleteBaseTask(id) {
+      if (confirm(`Delete base task: ${id}?`)) {
+        alert(`Base task ${id} deleted!`);
+      }
+    }
+    
+    // Draft functions
+    function distributeToDays() {
+      alert('Distribute draft tasks to days');
+    }
+    
+    function addDraftTask() {
+      alert('Add draft task');
+    }
+    
+    // Settings functions
+    function toggleSetting(setting) {
+      const checkbox = document.querySelector(`input[name="${setting}"]`);
+      if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        console.log(`${setting} toggled to ${checkbox.checked}`);
+      }
+    }
+    
+    function updateWeights() {
+      const weights = {
+        wP: document.querySelector('input[name="wP"]').value,
+        wT: document.querySelector('input[name="wT"]').value,
+        wC: document.querySelector('input[name="wC"]').value,
+        wL: document.querySelector('input[name="wL"]').value,
+        wS: document.querySelector('input[name="wS"]').value
+      };
+      console.log('Weights updated:', weights);
+    }
+    
+    function toggleTheme() {
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      console.log(`Theme changed to ${newTheme}`);
     }
     
     // Start application when DOM is loaded
