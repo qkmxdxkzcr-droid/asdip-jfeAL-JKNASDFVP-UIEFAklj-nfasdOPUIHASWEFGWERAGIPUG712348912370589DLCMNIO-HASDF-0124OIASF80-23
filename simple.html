@@ -36,7 +36,49 @@
       border: 1px solid var(--border);
       border-radius: var(--radius);
       padding: 1rem;
+      min-height: 120px;
+      transition: min-height 0.3s ease;
+      /* Адаптивная высота */
+      display: flex;
+      flex-direction: column;
+    }
+    
+    /* Окна расширяются при большом количестве задач */
+    .timeline-window:has(.droplist:not(:empty)) {
+      min-height: 150px;
+    }
+    
+    .timeline-window:has(.droplist .task:nth-child(3)) {
       min-height: 200px;
+    }
+    
+    .timeline-window:has(.droplist .task:nth-child(5)) {
+      min-height: 250px;
+    }
+    
+    .timeline-window:has(.droplist .task:nth-child(7)) {
+      min-height: 300px;
+    }
+    
+    .timeline-window:has(.droplist .task:nth-child(9)) {
+      min-height: 350px;
+    }
+    
+    /* Классы для динамического изменения высоты */
+    .window-small {
+      min-height: 120px !important;
+    }
+    
+    .window-medium {
+      min-height: 180px !important;
+    }
+    
+    .window-large {
+      min-height: 250px !important;
+    }
+    
+    .window-xl {
+      min-height: 320px !important;
     }
     
     .unplanned-section,
@@ -320,6 +362,22 @@
     /* Expand drop zones for better DnD */
     .droplist {
       position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    /* Специальные стили для droplist в окнах */
+    .window-tasks {
+      flex: 1;
+      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .window-tasks .droplist {
+      flex: 1;
+      min-height: 60px;
     }
     
     .droplist::before {
@@ -475,6 +533,14 @@
     function init() {
       console.log('Simple Scheduler starting...');
       showPage('timeline');
+      
+      // Инициализируем высоту всех окон
+      setTimeout(() => {
+        document.querySelectorAll('.window-tasks').forEach(window => {
+          updateWindowHeight(window);
+        });
+      }, 100);
+      
       console.log('Application initialized');
     }
     
@@ -1592,7 +1658,30 @@
         } else {
           progressFill.style.backgroundColor = '#22C55E';
         }
+        
+        // Обновляем высоту окна в зависимости от количества задач
+        updateWindowHeight(window);
       });
+    }
+    
+    // Обновление высоты окна в зависимости от количества задач
+    function updateWindowHeight(window) {
+      const timelineWindow = window.closest('.timeline-window');
+      const taskCount = window.querySelectorAll('.task').length;
+      
+      // Убираем все классы высоты
+      timelineWindow.classList.remove('window-small', 'window-medium', 'window-large', 'window-xl');
+      
+      // Добавляем соответствующий класс
+      if (taskCount === 0) {
+        timelineWindow.classList.add('window-small');
+      } else if (taskCount <= 2) {
+        timelineWindow.classList.add('window-medium');
+      } else if (taskCount <= 4) {
+        timelineWindow.classList.add('window-large');
+      } else {
+        timelineWindow.classList.add('window-xl');
+      }
     }
     
     // ===== TEMPLATE FUNCTIONS =====
