@@ -57,10 +57,14 @@
     .progress-fill{ height:100%; background:var(--ok); width:0%; transition:width .3s ease; }
     .list{ display:flex; flex-direction:column; gap:12px; min-height:60px; }
     .task{ display:flex; gap:12px; align-items:flex-start; background:var(--card); border:1px solid var(--border);
-           border-radius:var(--r-xl); box-shadow:var(--shadow); padding:12px 16px; }
+           border-radius:var(--r-xl); box-shadow:var(--shadow); padding:12px 16px; cursor:grab; user-select:none; }
     .task .title{ font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .task .meta{ font-size:12px; color:var(--text-muted); margin-top:2px;}
-    .drag-handle{ cursor:grab; user-select:none; opacity:.6; }
+    .drag-handle{ opacity:.4; font-size:12px; }
+    .task:active{ cursor:grabbing; }
+    .task .del{ cursor:pointer; background:none; border:none; font-size:18px; color:var(--text-muted); 
+                padding:4px; border-radius:4px; transition:all 0.2s; }
+    .task .del:hover{ background:var(--danger-100); color:var(--danger-600); }
     .priority{ display:grid; place-items:center; width:24px; height:24px; border-radius:999px; font-weight:700; font-size:12px; }
     .p1{ background:color-mix(in oklab, var(--danger) 18%, white); color:var(--danger); }
     .p2{ background:var(--accent-200); color:var(--accent-600); }
@@ -225,12 +229,8 @@
           <div class="meta">${t.minutes} мин</div>
         </div>
         <span class="priority ${prClass(t.pr)}">${t.pr}</span>
-        <button class="del" title="Удалить">&times;</button>
+        <button class="del" title="Удалить" onclick="this.closest('.task').remove(); recalcAll();">&times;</button>
       `;
-      el.querySelector('.del').onclick = ()=> {
-        el.remove();
-        recalcAll();
-      };
       return el;
     }
 
@@ -277,7 +277,7 @@
       sortables = lists.map(list => new Sortable(list, {
         group: 'windows',
         animation: 150,
-        handle: '.drag-handle',
+        // Убираем handle - теперь вся карточка драгабельная
         ghostClass: 'dragging',
         chosenClass: 'dragging',
         dragClass: 'dragging',
