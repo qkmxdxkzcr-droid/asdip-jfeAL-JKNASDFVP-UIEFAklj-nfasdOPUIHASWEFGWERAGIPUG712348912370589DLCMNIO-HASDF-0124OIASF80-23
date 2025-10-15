@@ -251,8 +251,17 @@
 
     // ---- SortableJS init (DnD across lists, touch-ready) ----
     let sortables = [];
+    let lastInitTime = 0;
+    const MIN_INIT_INTERVAL = 500; // Минимум 500мс между инициализациями
     
     function initSortables() {
+      const now = Date.now();
+      if (now - lastInitTime < MIN_INIT_INTERVAL) {
+        return; // Слишком рано для переинициализации
+      }
+      
+      lastInitTime = now;
+      
       // Destroy existing sortables
       sortables.forEach(sortable => {
         try {
@@ -299,17 +308,44 @@
     // Initial setup
     initSortables();
     
-    // Auto-reinitialize on DOM changes
+    // Auto-reinitialize on DOM changes with smart debouncing
+    let reinitTimeout = null;
+    let isReinitializing = false;
+    
     const observer = new MutationObserver((mutations) => {
+      // Skip if already reinitializing
+      if (isReinitializing) return;
+      
       let shouldReinit = false;
       mutations.forEach((mutation) => {
         if (mutation.type === 'childList' && 
             (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
-          shouldReinit = true;
+          // Check if it's a real task addition/removal, not just drag operation
+          const addedTasks = Array.from(mutation.addedNodes).some(node => 
+            node.nodeType === 1 && node.classList && node.classList.contains('task')
+          );
+          const removedTasks = Array.from(mutation.removedNodes).some(node => 
+            node.nodeType === 1 && node.classList && node.classList.contains('task')
+          );
+          
+          if (addedTasks || removedTasks) {
+            shouldReinit = true;
+          }
         }
       });
+      
       if (shouldReinit) {
-        setTimeout(initSortables, 100);
+        // Clear existing timeout
+        if (reinitTimeout) {
+          clearTimeout(reinitTimeout);
+        }
+        // Debounce reinitialization
+        reinitTimeout = setTimeout(() => {
+          isReinitializing = true;
+          initSortables();
+          isReinitializing = false;
+          reinitTimeout = null;
+        }, 300);
       }
     });
     
