@@ -100,11 +100,120 @@
       padding: 0.5rem;
       /* Make entire area draggable */
       position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
     
     .unplanned-section .droplist:not(:empty),
     .flexible-section .droplist:not(:empty) {
       min-height: 120px;
+    }
+    
+    /* Адаптивная высота для незапланированных и гибких задач */
+    .unplanned-section .card,
+    .flexible-section .card {
+      transition: min-height 0.3s ease;
+      min-height: 120px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(2)) {
+      min-height: 150px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(3)) {
+      min-height: 180px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(4)) {
+      min-height: 210px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(5)) {
+      min-height: 240px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(6)) {
+      min-height: 270px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(7)) {
+      min-height: 300px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(8)) {
+      min-height: 330px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(9)) {
+      min-height: 360px;
+    }
+    
+    .unplanned-section .card:has(.droplist .task:nth-child(10)) {
+      min-height: 390px;
+    }
+    
+    /* Максимальная высота - дальше прокрутка */
+    .unplanned-section .card:has(.droplist .task:nth-child(11)) {
+      min-height: 400px;
+    }
+    
+    /* То же самое для гибких задач */
+    .flexible-section .card:has(.droplist .task:nth-child(2)) {
+      min-height: 150px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(3)) {
+      min-height: 180px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(4)) {
+      min-height: 210px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(5)) {
+      min-height: 240px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(6)) {
+      min-height: 270px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(7)) {
+      min-height: 300px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(8)) {
+      min-height: 330px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(9)) {
+      min-height: 360px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(10)) {
+      min-height: 390px;
+    }
+    
+    .flexible-section .card:has(.droplist .task:nth-child(11)) {
+      min-height: 400px;
+    }
+    
+    /* Классы для боковых панелей */
+    .sidebar-small {
+      min-height: 120px !important;
+    }
+    
+    .sidebar-medium {
+      min-height: 150px !important;
+    }
+    
+    .sidebar-large {
+      min-height: 200px !important;
+    }
+    
+    .sidebar-xl {
+      min-height: 250px !important;
     }
     
     .unplanned-section .card,
@@ -460,6 +569,69 @@
     .flexible-section .card .droplist:active {
       cursor: grabbing;
     }
+    
+    /* Стили для галочек и выполнения задач */
+    .task-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+    
+    .task-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      opacity: 0;
+      position: absolute;
+      cursor: pointer;
+    }
+    
+    .checkmark {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border);
+      border-radius: 4px;
+      background: var(--card-bg);
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .checkmark:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+    }
+    
+    .task-checkbox input[type="checkbox"]:checked + .checkmark {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    
+    .task-checkbox input[type="checkbox"]:checked + .checkmark::after {
+      content: '✓';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-size: 12px;
+      font-weight: bold;
+    }
+    
+    /* Стили для выполненных задач */
+    .task.completed {
+      opacity: 0.6;
+      background: var(--bg-muted);
+    }
+    
+    .task.completed .label {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+    
+    .task.completed .priority {
+      opacity: 0.5;
+    }
   </style>
   
   <!-- External Libraries -->
@@ -539,6 +711,9 @@
         document.querySelectorAll('.window-tasks').forEach(window => {
           updateWindowHeight(window);
         });
+        
+        // Инициализируем высоту боковых панелей
+        updateSidebarStats();
       }, 100);
       
       console.log('Application initialized');
@@ -1219,12 +1394,29 @@
     // Toggle task completion
     function toggleTask(checkbox) {
       const task = checkbox.closest('.task, .draft-task');
+      const label = task.querySelector('.label');
+      const priority = task.querySelector('.priority');
+      
       if (checkbox.checked) {
-        task.style.opacity = '0.6';
-        task.querySelector('.label').style.textDecoration = 'line-through';
+        // Отмечаем задачу как выполненную
+        task.classList.add('completed');
+        task.dataset.completed = 'true';
+        
+        // Обновляем статистику
+        updateWindowStats();
+        updateCurves();
+        
+        console.log('Task completed:', label.textContent);
       } else {
-        task.style.opacity = '1';
-        task.querySelector('.label').style.textDecoration = 'none';
+        // Снимаем отметку о выполнении
+        task.classList.remove('completed');
+        task.dataset.completed = 'false';
+        
+        // Обновляем статистику
+        updateWindowStats();
+        updateCurves();
+        
+        console.log('Task uncompleted:', label.textContent);
       }
     }
     
@@ -1352,6 +1544,7 @@
       const task = document.createElement('div');
       task.className = 'task';
       task.dataset.taskId = generateId();
+      task.dataset.completed = 'false';
       task.innerHTML = `
         <div class="task-checkbox">
           <input type="checkbox" onchange="toggleTask(this)">
@@ -1632,18 +1825,39 @@
       document.querySelectorAll('.window-tasks').forEach(window => {
         const tasks = window.querySelectorAll('.task');
         let used = 0;
+        let completed = 0;
+        let total = 0;
         
         tasks.forEach(task => {
           const minutes = parseInt(task.querySelector('.minutes').textContent);
           used += minutes;
+          total++;
+          
+          if (task.dataset.completed === 'true') {
+            completed++;
+          }
         });
         
         window.dataset.used = used;
-        const total = parseInt(window.dataset.total);
-        const percentage = Math.min((used / total) * 100, 100);
+        window.dataset.completed = completed;
+        window.dataset.total = total;
+        
+        const windowTotal = parseInt(window.dataset.total);
+        const percentage = Math.min((used / windowTotal) * 100, 100);
         
         const stats = window.closest('.timeline-window').querySelector('.window-stats');
         stats.querySelector('.used').textContent = used + 'min';
+        
+        // Добавляем информацию о выполненных задачах
+        let completedInfo = stats.querySelector('.completed-info');
+        if (!completedInfo) {
+          completedInfo = document.createElement('span');
+          completedInfo.className = 'completed-info';
+          completedInfo.style.fontSize = '0.8em';
+          completedInfo.style.color = 'var(--text-muted)';
+          stats.appendChild(completedInfo);
+        }
+        completedInfo.textContent = ` (${completed}/${total} done)`;
         
         const progressFill = window.closest('.timeline-window').querySelector('.progress-fill');
         progressFill.style.width = percentage + '%';
@@ -1662,6 +1876,55 @@
         // Обновляем высоту окна в зависимости от количества задач
         updateWindowHeight(window);
       });
+      
+      // Обновляем статистику для незапланированных и гибких задач
+      updateSidebarStats();
+    }
+    
+    // Обновление статистики для боковых панелей
+    function updateSidebarStats() {
+      // Незапланированные задачи
+      const unplannedTasks = document.querySelectorAll('#unplanned .task');
+      const unplannedCompleted = document.querySelectorAll('#unplanned .task.completed');
+      const unplannedStats = document.querySelector('#unplanned .card-header h3');
+      if (unplannedStats) {
+        unplannedStats.innerHTML = `Unplanned Tasks <span style="font-size: 0.8em; color: var(--text-muted);">(${unplannedCompleted.length}/${unplannedTasks.length})</span>`;
+      }
+      
+      // Гибкие задачи
+      const flexibleTasks = document.querySelectorAll('#flexible .task');
+      const flexibleCompleted = document.querySelectorAll('#flexible .task.completed');
+      const flexibleStats = document.querySelector('#flexible .card-header h3');
+      if (flexibleStats) {
+        flexibleStats.innerHTML = `Flexible Tasks <span style="font-size: 0.8em; color: var(--text-muted);">(${flexibleCompleted.length}/${flexibleTasks.length})</span>`;
+      }
+      
+      // Обновляем высоту боковых панелей
+      updateSidebarHeight('#unplanned', unplannedTasks.length);
+      updateSidebarHeight('#flexible', flexibleTasks.length);
+    }
+    
+    // Обновление высоты боковых панелей
+    function updateSidebarHeight(selector, taskCount) {
+      const card = document.querySelector(selector + ' .card');
+      if (!card) return;
+      
+      // Убираем все классы высоты
+      card.classList.remove('sidebar-small', 'sidebar-medium', 'sidebar-large', 'sidebar-xl');
+      
+      // Добавляем соответствующий класс
+      if (taskCount === 0) {
+        card.classList.add('sidebar-small');
+      } else if (taskCount <= 2) {
+        card.classList.add('sidebar-medium');
+      } else if (taskCount <= 4) {
+        card.classList.add('sidebar-large');
+      } else if (taskCount <= 6) {
+        card.classList.add('sidebar-xl');
+      } else {
+        // Больше 6 задач - фиксированная высота с прокруткой
+        card.style.minHeight = '400px';
+      }
     }
     
     // Обновление высоты окна в зависимости от количества задач
