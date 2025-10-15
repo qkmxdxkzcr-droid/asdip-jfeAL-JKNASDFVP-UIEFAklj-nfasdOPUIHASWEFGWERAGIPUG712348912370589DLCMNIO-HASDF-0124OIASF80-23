@@ -23,11 +23,18 @@
     .sidebar{
       width:240px; flex:0 0 240px; background:var(--panel); border-right:1px solid var(--border);
       padding:16px; position:sticky; top:0; align-self:flex-start; height:100svh; box-sizing:border-box;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .sidebar.scrolled {
+      background: var(--card);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
     .nav-item{
       position:relative; display:flex; align-items:center; gap:10px;
       padding:10px 12px; border-radius:10px; color:var(--text-muted); text-decoration:none;
-      overflow:hidden;
+      transition: all 0.3s ease;
     }
     .nav-item:hover{ background:var(--accent-25); color:var(--text); }
     .nav-item.active{ color:var(--accent-600); background:color-mix(in oklab, var(--accent-25) 80%, var(--panel)); }
@@ -35,19 +42,21 @@
       content:""; position:absolute; left:0; top:0; width:3px; height:100%; background:var(--accent-600); border-radius:0 4px 4px 0;
     }
     
-    /* Sticky navigation shimmer effect */
+    /* Sticky navigation underline effect */
     .nav-item::after {
       content: '';
       position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-      transition: left 0.6s ease;
+      bottom: 0;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background-color: var(--accent-600);
+      transition: width 0.3s ease;
     }
-    .nav-item:hover::after {
-      left: 100%;
+    
+    .nav-item:hover::after,
+    .nav-item.active::after {
+      width: 100%;
     }
     .content{ flex:1; padding:20px; max-width:1440px; margin:0 auto; }
     .topbar{ display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px;}
@@ -79,71 +88,102 @@
     .drag-handle{ opacity:.4; font-size:12px; }
     .task:active{ cursor:grabbing; }
     
-    /* Animated checkbox for tasks */
+    /* Animated checkbox pill style for tasks */
     .task-checkbox {
-      position: relative;
-      width: 20px;
-      height: 20px;
+      display: flex;
+      align-items: center;
       cursor: pointer;
+      margin-right: 10px;
+      user-select: none;
+      background-color: #f8f9fa;
+      border-radius: 50px;
+      padding: 6px 12px;
+      transition: all 0.3s ease;
       flex-shrink: 0;
     }
     
+    .task-checkbox:hover {
+      background-color: #e9ecef;
+    }
+    
     .task-checkbox input {
-      opacity: 0;
       position: absolute;
-      width: 100%;
-      height: 100%;
-      margin: 0;
+      opacity: 0;
       cursor: pointer;
+      height: 0;
+      width: 0;
     }
     
     .task-checkbox .checkmark {
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 20px;
-      width: 20px;
-      background-color: transparent;
-      border: 2px solid var(--text-muted);
+      position: relative;
+      height: 18px;
+      width: 18px;
+      background-color: #fff;
+      border: 2px solid #ddd;
       border-radius: 4px;
-      transition: all 0.3s ease;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
     }
     
-    .task-checkbox:hover .checkmark {
-      border-color: var(--accent-600);
-      background-color: var(--accent-25);
-    }
-    
-    .task-checkbox input:checked ~ .checkmark {
-      background-color: var(--accent-600);
-      border-color: var(--accent-600);
-    }
-    
-    .task-checkbox .checkmark:after {
-      content: "";
+    .task-checkbox .checkmark::after {
+      content: '';
       position: absolute;
       display: none;
-      left: 6px;
-      top: 2px;
-      width: 6px;
+      width: 5px;
       height: 10px;
       border: solid white;
       border-width: 0 2px 2px 0;
       transform: rotate(45deg);
+      transition: all 0.2s ease;
     }
     
-    .task-checkbox input:checked ~ .checkmark:after {
-      display: block;
+    .task-checkbox:hover .checkmark {
+      border-color: #3498db;
+      box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+    }
+    
+    .task-checkbox input:focus ~ .checkmark {
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
     }
     
     .task-checkbox input:checked ~ .checkmark {
-      animation: checkmark-bounce 0.6s ease;
+      background-color: #3498db;
+      border-color: #3498db;
     }
     
-    @keyframes checkmark-bounce {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.2); }
-      100% { transform: scale(1); }
+    .task-checkbox input:checked ~ .checkmark::after {
+      display: block;
+      animation: checkmark 0.2s ease forwards;
+    }
+    
+    @keyframes checkmark {
+      0% {
+        opacity: 0;
+        transform: rotate(45deg) scale(0.8);
+      }
+      50% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1.2);
+      }
+      100% {
+        opacity: 1;
+        transform: rotate(45deg) scale(1);
+      }
+    }
+    
+    .task-checkbox .label {
+      font-size: 14px;
+      line-height: 1.4;
+      color: #333;
+      transition: color 0.2s ease;
+    }
+    
+    .task-checkbox:hover .label {
+      color: #3498db;
     }
     .task .del{ cursor:pointer; background:none; border:none; font-size:18px; color:var(--text-muted); 
                 padding:4px; border-radius:4px; transition:all 0.2s; }
@@ -413,6 +453,97 @@
     
     // Initial setup
     initSortables();
+
+    // Sticky navigation effect
+    document.addEventListener('DOMContentLoaded', function() {
+      const sidebar = document.querySelector('.sidebar');
+      
+      // Scroll event listener
+      window.addEventListener('scroll', function() {
+        // Add 'scrolled' class when page is scrolled
+        if (window.scrollY > 50) {
+          sidebar.classList.add('scrolled');
+        } else {
+          sidebar.classList.remove('scrolled');
+        }
+      });
+      
+      // Enhanced checkbox functionality with ripple effect
+      const checkboxes = document.querySelectorAll('.task-checkbox input');
+      
+      checkboxes.forEach(checkbox => {
+        // Add keyboard support
+        checkbox.addEventListener('keydown', function(e) {
+          if (e.code === 'Space' || e.code === 'Enter') {
+            e.preventDefault();
+            this.checked = !this.checked;
+            const event = new Event('change', { bubbles: true });
+            this.dispatchEvent(event);
+            addRippleEffect(this);
+          }
+        });
+        
+        // Add click animation
+        checkbox.addEventListener('change', function() {
+          addRippleEffect(this);
+        });
+      });
+      
+      // Function to add ripple effect to checkbox
+      function addRippleEffect(checkbox) {
+        const label = checkbox.closest('.task-checkbox');
+        const checkmark = label.querySelector('.checkmark');
+        
+        // Remove any existing ripple
+        const existingRipple = checkmark.querySelector('.ripple');
+        if (existingRipple) {
+          existingRipple.remove();
+        }
+        
+        // Create ripple element
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple');
+        checkmark.appendChild(ripple);
+        
+        // Calculate ripple size
+        const size = Math.max(checkmark.offsetWidth, checkmark.offsetHeight) * 2.5;
+        ripple.style.width = size + 'px';
+        ripple.style.height = size + 'px';
+        
+        // Position ripple in center
+        ripple.style.left = -(size - checkmark.offsetWidth) / 2 + 'px';
+        ripple.style.top = -(size - checkmark.offsetHeight) / 2 + 'px';
+        
+        // Remove ripple after animation
+        setTimeout(() => {
+          ripple.remove();
+        }, 600);
+      }
+      
+      // Add custom ripple styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .task-checkbox .checkmark {
+          overflow: hidden;
+          position: relative;
+        }
+        .ripple {
+          position: absolute;
+          background-color: rgba(52, 152, 219, 0.3);
+          border-radius: 50%;
+          transform: scale(0);
+          animation: ripple 0.6s linear;
+          pointer-events: none;
+        }
+        @keyframes ripple {
+          to {
+            transform: scale(1);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+    });
     
     // Auto-reinitialize on DOM changes with smart debouncing
     let reinitTimeout = null;
