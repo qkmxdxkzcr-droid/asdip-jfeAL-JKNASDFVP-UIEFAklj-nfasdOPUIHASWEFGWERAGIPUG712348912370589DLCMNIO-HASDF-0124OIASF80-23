@@ -230,8 +230,6 @@
       el.querySelector('.del').onclick = ()=> {
         el.remove();
         recalcAll();
-        // Reinitialize sortables after removing task
-        setTimeout(initSortables, 100);
       };
       return el;
     }
@@ -249,8 +247,6 @@
       unp.appendChild(renderTask(t));
       document.getElementById('newTitle').value='';
       recalcAll();
-      // Reinitialize sortables after adding new task
-      setTimeout(initSortables, 100);
     };
 
     // ---- SortableJS init (DnD across lists, touch-ready) ----
@@ -258,7 +254,13 @@
     
     function initSortables() {
       // Destroy existing sortables
-      sortables.forEach(sortable => sortable.destroy());
+      sortables.forEach(sortable => {
+        try {
+          sortable.destroy();
+        } catch (e) {
+          console.warn('Error destroying sortable:', e);
+        }
+      });
       sortables = [];
       
       // Reinitialize all lists
@@ -270,6 +272,9 @@
         ghostClass: 'dragging',
         chosenClass: 'dragging',
         dragClass: 'dragging',
+        forceFallback: false,
+        fallbackOnBody: true,
+        swapThreshold: 0.65,
         onStart: (evt) => {
           evt.to.classList.add('drag-over');
         },
@@ -287,14 +292,31 @@
             flash(listEl, `Не помещается: превышение на ${over} мин`);
           }
           recalcAll();
-          // Reinitialize sortables after DOM changes
-          setTimeout(initSortables, 100);
         }
       }));
     }
     
     // Initial setup
     initSortables();
+    
+    // Auto-reinitialize on DOM changes
+    const observer = new MutationObserver((mutations) => {
+      let shouldReinit = false;
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList' && 
+            (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
+          shouldReinit = true;
+        }
+      });
+      if (shouldReinit) {
+        setTimeout(initSortables, 100);
+      }
+    });
+    
+    // Observe all droplist containers
+    document.querySelectorAll('.droplist').forEach(list => {
+      observer.observe(list, { childList: true });
+    });
 
     function sumMinutes(listEl){
       return Array.from(listEl.children).reduce((acc,el)=>acc + (+el.dataset.minutes||0), 0);
