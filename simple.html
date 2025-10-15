@@ -486,13 +486,14 @@
     }
     
     .template-dialog-content {
-      background: var(--card-bg);
+      background: white;
       border-radius: var(--radius);
       width: 90%;
       max-width: 800px;
       max-height: 90vh;
       overflow-y: auto;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(0, 0, 0, 0.1);
     }
     
     .template-dialog-header {
@@ -506,7 +507,7 @@
     .template-dialog-title {
       font-size: 1.5rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #1f2937;
       margin: 0;
     }
     
@@ -514,14 +515,14 @@
       background: none;
       border: none;
       font-size: 1.5rem;
-      color: var(--text-muted);
+      color: #6b7280;
       cursor: pointer;
       padding: 0.5rem;
       border-radius: var(--radius);
     }
     
     .template-dialog-close:hover {
-      background: var(--bg-muted);
+      background: #f3f4f6;
     }
     
     .template-dialog-body {
@@ -548,15 +549,15 @@
     
     .form-label {
       font-weight: 500;
-      color: var(--text-primary);
+      color: #374151;
     }
     
     .form-input {
       padding: 0.75rem;
-      border: 1px solid var(--border);
+      border: 1px solid #d1d5db;
       border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--text-primary);
+      background: white;
+      color: #1f2937;
       font-size: 1rem;
     }
     
@@ -568,10 +569,10 @@
     
     .form-select {
       padding: 0.75rem;
-      border: 1px solid var(--border);
+      border: 1px solid #d1d5db;
       border-radius: var(--radius);
-      background: var(--bg);
-      color: var(--text-primary);
+      background: white;
+      color: #1f2937;
       font-size: 1rem;
     }
     
@@ -624,7 +625,7 @@
     .blocks-title {
       font-size: 1.125rem;
       font-weight: 600;
-      color: var(--text-primary);
+      color: #1f2937;
       margin: 0;
     }
     
@@ -653,8 +654,8 @@
     }
     
     .block-card {
-      background: var(--bg);
-      border: 1px solid var(--border);
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
       border-radius: var(--radius);
       padding: 1rem;
       position: relative;
@@ -713,7 +714,7 @@
       right: 0.75rem;
       background: none;
       border: none;
-      color: var(--text-muted);
+      color: #6b7280;
       cursor: pointer;
       font-size: 1.25rem;
       padding: 0.25rem;
@@ -721,8 +722,8 @@
     }
     
     .block-remove:hover {
-      background: var(--danger-light);
-      color: var(--danger);
+      background: #fef2f2;
+      color: #dc2626;
     }
     
     .block-form {
@@ -752,7 +753,7 @@
     }
     
     .color-option.selected {
-      border-color: var(--text-primary);
+      border-color: #1f2937;
     }
     
     .color-option.custom {
@@ -2516,7 +2517,7 @@
             <button class="template-dialog-close" onclick="closeTemplateDialog()">&times;</button>
           </div>
           <div class="template-dialog-body">
-            <form class="template-form" onsubmit="saveTemplate(event)">
+            <form class="template-form" id="template-form" onsubmit="saveTemplate(event)">
               <div class="form-row">
                 <div class="form-group">
                   <label class="form-label">Template Name</label>
@@ -2669,6 +2670,7 @@
       return colors.map(color => `
         <div class="color-option ${color === selectedColor ? 'selected' : ''}" 
              style="background-color: ${color}" 
+             data-color="${color}"
              onclick="selectColor(this, '${color}')"></div>
       `).join('') + `
         <div class="color-option custom" onclick="openCustomColor()"></div>
@@ -2736,6 +2738,16 @@
         inputs.forEach(input => {
           block[input.name] = input.value;
         });
+        
+        // Get selected color
+        const selectedColor = card.querySelector('.color-option.selected');
+        if (selectedColor) {
+          const color = selectedColor.getAttribute('data-color');
+          if (color) {
+            block.color = color;
+          }
+        }
+        
         return block;
       });
       
