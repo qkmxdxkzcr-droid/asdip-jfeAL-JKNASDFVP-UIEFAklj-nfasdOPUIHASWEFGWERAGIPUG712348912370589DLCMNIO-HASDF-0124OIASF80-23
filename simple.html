@@ -318,24 +318,459 @@
     .priority-p4 { color: #22C55E; }
     
     /* Template Styles */
+    /* Templates Page */
+    .templates-page {
+      padding: 2rem;
+    }
+    
+    .templates-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    
+    .page-title {
+      font-size: 2rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+      gap: 1.5rem;
+    }
+    
     .template-card {
       background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: var(--radius);
-      padding: 1rem;
-      margin-bottom: 1rem;
+      padding: 1.5rem;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .template-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
     
     .template-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1rem;
+    }
+    
+    .template-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    
+    .template-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+    
+    .template-status.active {
+      background: var(--success-light);
+      color: var(--success);
+    }
+    
+    .template-status.inactive {
+      background: var(--bg-muted);
+      color: var(--text-muted);
+    }
+    
+    .template-info {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .info-item {
+      text-align: center;
+    }
+    
+    .info-label {
+      display: block;
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+      display: block;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .template-preview {
+      margin-top: 1rem;
+    }
+    
+    .preview-title {
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+    }
+    
+    .preview-blocks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .preview-block {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .preview-block.window {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    .preview-block.fixed {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .preview-block.flexible {
+      background: var(--info-light);
+      color: var(--info);
+    }
+    
+    .block-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    
+    .template-actions {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 1rem;
+    }
+    
+    /* Template Dialog */
+    .template-dialog {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .template-dialog-content {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .template-dialog-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .template-dialog-title {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    
+    .template-dialog-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: var(--radius);
+    }
+    
+    .template-dialog-close:hover {
+      background: var(--bg-muted);
+    }
+    
+    .template-dialog-body {
+      padding: 1.5rem;
+    }
+    
+    .template-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .form-label {
+      font-weight: 500;
+      color: var(--text-primary);
+    }
+    
+    .form-input {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px var(--primary-light);
+    }
+    
+    .form-select {
+      padding: 0.75rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    
+    .form-switch {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    
+    .switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: var(--bg-muted);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    
+    .switch.active {
+      background: var(--primary);
+    }
+    
+    .switch-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.2s ease;
+    }
+    
+    .switch.active .switch-thumb {
+      transform: translateX(24px);
+    }
+    
+    .blocks-section {
+      margin-top: 1rem;
+    }
+    
+    .blocks-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 1rem;
     }
     
-    .template-actions {
+    .blocks-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin: 0;
+    }
+    
+    .add-block-btn {
       display: flex;
+      align-items: center;
       gap: 0.5rem;
+      padding: 0.5rem 1rem;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    
+    .add-block-btn:hover {
+      background: var(--primary-dark);
+    }
+    
+    .blocks-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    
+    .block-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      position: relative;
+    }
+    
+    .block-card.dragging {
+      opacity: 0.5;
+    }
+    
+    .block-card.error {
+      border-color: var(--danger);
+    }
+    
+    .block-header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .drag-handle {
+      cursor: grab;
+      color: var(--text-muted);
+      font-size: 1.25rem;
+    }
+    
+    .drag-handle:active {
+      cursor: grabbing;
+    }
+    
+    .block-type-badge {
+      padding: 0.25rem 0.75rem;
+      border-radius: 1rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .block-type-badge.window {
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+    
+    .block-type-badge.fixed {
+      background: var(--warning-light);
+      color: var(--warning);
+    }
+    
+    .block-type-badge.flexible {
+      background: var(--info-light);
+      color: var(--info);
+    }
+    
+    .block-remove {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.25rem;
+      padding: 0.25rem;
+      border-radius: var(--radius);
+    }
+    
+    .block-remove:hover {
+      background: var(--danger-light);
+      color: var(--danger);
+    }
+    
+    .block-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    .color-picker {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    
+    .color-option {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .color-option:hover {
+      transform: scale(1.1);
+    }
+    
+    .color-option.selected {
+      border-color: var(--text-primary);
+    }
+    
+    .color-option.custom {
+      background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #80ff00, #00ff00, #00ff80, #00ffff, #0080ff, #0000ff, #8000ff, #ff00ff, #ff0080);
+    }
+    
+    .error-message {
+      color: var(--danger);
+      font-size: 0.875rem;
+      margin-top: 0.25rem;
+    }
+    
+    .template-dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      padding: 1.5rem;
+      border-top: 1px solid var(--border);
     }
     
     .schedule-blocks {
@@ -1005,84 +1440,22 @@
     
     function renderTemplates(container) {
       container.innerHTML = `
-        <div class="topbar">
-          <h1 class="h1">Templates</h1>
-          <div class="topbar-actions">
-            <button class="btn primary" onclick="showAddTemplateModal()">Add Template</button>
+        <div class="templates-page">
+          <div class="templates-header">
+            <h1 class="page-title">Templates</h1>
+            <button class="btn btn-primary" onclick="openTemplateDialog()">
+              <i class="fas fa-plus"></i> Create Template
+            </button>
           </div>
-        </div>
-        
-        <div class="templates-container">
-          <div class="templates-list" id="templates-list">
-            <div class="template-card">
-              <div class="template-header">
-                <h3 class="template-name">Default Template</h3>
-                <div class="template-actions">
-                  <button class="btn btn-sm" onclick="editTemplate('default')">Edit</button>
-                  <button class="btn btn-sm danger" onclick="deleteTemplate('default')">Delete</button>
-                </div>
-              </div>
-              <div class="template-info">
-                <div class="info-item">
-                  <span class="info-label">Duration</span>
-                  <span class="info-value">16h</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Windows</span>
-                  <span class="info-value">3</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">Fixed Events</span>
-                  <span class="info-value">1</span>
-                </div>
-              </div>
-              <div class="template-preview">
-                <h4>Schedule Preview:</h4>
-                <div class="schedule-blocks" id="template-blocks">
-                  <div class="schedule-block window-block" data-type="window">
-                    <div class="block-header">
-                      <span class="block-title">Morning</span>
-                      <span class="block-time">08:00 - 12:00</span>
-                    </div>
-                    <div class="block-actions">
-                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
-                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
-                    </div>
-                  </div>
-                  <div class="schedule-block window-block" data-type="window">
-                    <div class="block-header">
-                      <span class="block-title">Afternoon</span>
-                      <span class="block-time">12:00 - 17:00</span>
-                    </div>
-                    <div class="block-actions">
-                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
-                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
-                    </div>
-                  </div>
-                  <div class="schedule-block fixed-block" data-type="fixed">
-                    <div class="block-header">
-                      <span class="block-title">Lunch</span>
-                      <span class="block-time">12:00 - 13:00</span>
-                    </div>
-                    <div class="block-actions">
-                      <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
-                      <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
-                    </div>
-                  </div>
-                </div>
-                <div class="template-actions">
-                  <button class="btn btn-sm" onclick="addWindowBlock()">Add Window</button>
-                  <button class="btn btn-sm" onclick="addFixedBlock()">Add Fixed Event</button>
-                  <button class="btn btn-sm primary" onclick="applyTemplate('default')">Apply to Today</button>
-                </div>
-              </div>
-            </div>
+          
+          <div class="templates-grid" id="templates-grid">
+            <!-- Templates will be loaded here -->
           </div>
         </div>
       `;
       
-      // Initialize template DnD
-      initTemplateDnD();
+      // Load templates from storage
+      loadTemplates();
     }
     
     function renderImport(container) {
@@ -2054,142 +2427,366 @@
     
     // ===== TEMPLATE FUNCTIONS =====
     
-    // Show add template modal
-    function showAddTemplateModal() {
-      const modal = document.createElement('div');
-      modal.className = 'modal';
-      modal.innerHTML = `
-        <div class="modal-content">
-          <div class="modal-header">
-            <h3>Add Template</h3>
-            <button class="modal-close" onclick="this.closest('.modal').remove()">&times;</button>
+    let templates = [];
+    let currentTemplate = null;
+    let templateDialog = null;
+    
+    // Load templates from localStorage
+    function loadTemplates() {
+      const stored = localStorage.getItem('templates');
+      if (stored) {
+        templates = JSON.parse(stored);
+      } else {
+        // Create default template
+        templates = [{
+          id: 'default',
+          name: 'Default Template',
+          active: true,
+          brackets: [
+            { type: 'window', name: 'Morning', start_time: '08:00', end_time: '12:00', color: '#4F46E5', lock: 'soft' },
+            { type: 'fixed', name: 'Lunch', start_time: '12:00', end_time: '13:00', color: '#F97316', lock: 'hard' },
+            { type: 'window', name: 'Afternoon', start_time: '13:00', end_time: '17:00', color: '#10B981', lock: 'soft' },
+            { type: 'flexible', name: 'Evening', color: '#8B5CF6', lock: 'soft' }
+          ]
+        }];
+        saveTemplates();
+      }
+      renderTemplatesGrid();
+    }
+    
+    // Save templates to localStorage
+    function saveTemplates() {
+      localStorage.setItem('templates', JSON.stringify(templates));
+    }
+    
+    // Render templates grid
+    function renderTemplatesGrid() {
+      const grid = document.getElementById('templates-grid');
+      if (!grid) return;
+      
+      grid.innerHTML = templates.map(template => `
+        <div class="template-card" onclick="openTemplateDialog('${template.id}')">
+          <div class="template-header">
+            <h3 class="template-name">${template.name}</h3>
+            <div class="template-status ${template.active ? 'active' : 'inactive'}">
+              ${template.active ? 'Active' : 'Inactive'}
+            </div>
           </div>
-          <form onsubmit="addTemplate(event)">
-            <div class="form-group">
-              <label class="form-label">Template Name</label>
-              <input type="text" class="form-input" name="name" required>
+          <div class="template-info">
+            <div class="info-item">
+              <span class="info-label">Blocks</span>
+              <span class="info-value">${template.brackets.length}</span>
             </div>
-            <div class="form-group">
-              <label class="form-label">Day Start (HH:MM)</label>
-              <input type="time" class="form-input" name="startTime" value="08:00" required>
+            <div class="info-item">
+              <span class="info-label">Windows</span>
+              <span class="info-value">${template.brackets.filter(b => b.type === 'window').length}</span>
             </div>
-            <div class="form-group">
-              <label class="form-label">Day Duration (hours)</label>
-              <input type="number" class="form-input" name="duration" min="1" max="24" value="16" required>
+            <div class="info-item">
+              <span class="info-label">Fixed</span>
+              <span class="info-value">${template.brackets.filter(b => b.type === 'fixed').length}</span>
             </div>
-            <div class="form-actions">
-              <button type="button" class="btn" onclick="this.closest('.modal').remove()">Cancel</button>
-              <button type="submit" class="btn primary">Create Template</button>
+          </div>
+          <div class="template-preview">
+            <div class="preview-title">Preview:</div>
+            <div class="preview-blocks">
+              ${template.brackets.slice(0, 5).map(block => `
+                <div class="preview-block ${block.type}">
+                  <div class="block-color" style="background-color: ${block.color}"></div>
+                  <span>${block.name}</span>
+                  ${block.start_time ? `<span>${block.start_time}-${block.end_time}</span>` : ''}
+                </div>
+              `).join('')}
+              ${template.brackets.length > 5 ? `<span class="preview-block">+${template.brackets.length - 5} more</span>` : ''}
             </div>
-          </form>
+          </div>
+        </div>
+      `).join('');
+    }
+    
+    // Open template dialog
+    function openTemplateDialog(templateId = null) {
+      currentTemplate = templateId ? templates.find(t => t.id === templateId) : null;
+      
+      templateDialog = document.createElement('div');
+      templateDialog.className = 'template-dialog';
+      templateDialog.innerHTML = `
+        <div class="template-dialog-content">
+          <div class="template-dialog-header">
+            <h2 class="template-dialog-title">${currentTemplate ? 'Edit Template' : 'Create Template'}</h2>
+            <button class="template-dialog-close" onclick="closeTemplateDialog()">&times;</button>
+          </div>
+          <div class="template-dialog-body">
+            <form class="template-form" onsubmit="saveTemplate(event)">
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Template Name</label>
+                  <input type="text" class="form-input" name="name" value="${currentTemplate?.name || ''}" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <div class="form-switch">
+                    <div class="switch ${currentTemplate?.active ? 'active' : ''}" onclick="toggleSwitch(this)">
+                      <div class="switch-thumb"></div>
+                    </div>
+                    <span>Active</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="blocks-section">
+                <div class="blocks-header">
+                  <h3 class="blocks-title">Day Blocks</h3>
+                  <div>
+                    <button type="button" class="add-block-btn" onclick="addBlock('window')">
+                      <i class="fas fa-plus"></i> Add Window
+                    </button>
+                    <button type="button" class="add-block-btn" onclick="addBlock('fixed')" style="margin-left: 0.5rem;">
+                      <i class="fas fa-plus"></i> Add Fixed
+                    </button>
+                    <button type="button" class="add-block-btn" onclick="addBlock('flexible')" style="margin-left: 0.5rem;">
+                      <i class="fas fa-plus"></i> Add Flexible
+                    </button>
+                  </div>
+                </div>
+                <div class="blocks-list" id="blocks-list">
+                  ${currentTemplate ? currentTemplate.brackets.map((block, index) => renderBlock(block, index)).join('') : ''}
+                </div>
+              </div>
+            </form>
+          </div>
+          <div class="template-dialog-footer">
+            <button type="button" class="btn" onclick="closeTemplateDialog()">Cancel</button>
+            <button type="button" class="btn btn-danger" onclick="deleteTemplate()" ${!currentTemplate ? 'style="display: none;"' : ''}>Delete</button>
+            <button type="submit" class="btn btn-primary" form="template-form">Save Template</button>
+          </div>
         </div>
       `;
-      document.body.appendChild(modal);
-    }
-    
-    // Add template
-    function addTemplate(event) {
-      event.preventDefault();
-      const formData = new FormData(event.target);
-      const name = formData.get('name');
-      const startTime = formData.get('startTime');
-      const duration = formData.get('duration');
       
-      alert(`Template "${name}" created! Start: ${startTime}, Duration: ${duration}h`);
-      event.target.closest('.modal').remove();
+      document.body.appendChild(templateDialog);
+      
+      // Initialize DnD for blocks
+      setTimeout(() => {
+        initBlocksDnD();
+      }, 100);
     }
     
-    // Edit template
-    function editTemplate(templateId) {
-      alert(`Edit template: ${templateId}`);
-    }
-    
-    // Delete template
-    function deleteTemplate(templateId) {
-      if (confirm(`Delete template: ${templateId}?`)) {
-        alert(`Template ${templateId} deleted!`);
+    // Close template dialog
+    function closeTemplateDialog() {
+      if (templateDialog) {
+        templateDialog.remove();
+        templateDialog = null;
+        currentTemplate = null;
       }
     }
     
-    // Add window block
-    function addWindowBlock() {
-      const blocks = document.getElementById('template-blocks');
-      const block = document.createElement('div');
-      block.className = 'schedule-block window-block';
-      block.dataset.type = 'window';
-      block.innerHTML = `
-        <div class="block-header">
-          <span class="block-title">New Window</span>
-          <span class="block-time">09:00 - 10:00</span>
-        </div>
-        <div class="block-actions">
-          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
-          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
-        </div>
-      `;
-      blocks.appendChild(block);
+    // Toggle switch
+    function toggleSwitch(switchEl) {
+      switchEl.classList.toggle('active');
     }
     
-    // Add fixed block
-    function addFixedBlock() {
-      const blocks = document.getElementById('template-blocks');
-      const block = document.createElement('div');
-      block.className = 'schedule-block fixed-block';
-      block.dataset.type = 'fixed';
-      block.innerHTML = `
-        <div class="block-header">
-          <span class="block-title">New Fixed Event</span>
-          <span class="block-time">10:00 - 11:00</span>
-        </div>
-        <div class="block-actions">
-          <button class="btn btn-xs" onclick="editBlock(this)">Edit</button>
-          <button class="btn btn-xs danger" onclick="deleteBlock(this)">Delete</button>
-        </div>
-      `;
-      blocks.appendChild(block);
+    // Add block
+    function addBlock(type) {
+      const blocksList = document.getElementById('blocks-list');
+      const blockIndex = blocksList.children.length;
+      const block = {
+        type,
+        name: `New ${type === 'window' ? 'Window' : type === 'fixed' ? 'Fixed Event' : 'Flexible Block'}`,
+        start_time: type === 'flexible' ? '' : '09:00',
+        end_time: type === 'flexible' ? '' : '10:00',
+        color: getDefaultColor(type),
+        lock: 'soft'
+      };
+      
+      const blockEl = document.createElement('div');
+      blockEl.className = 'block-card';
+      blockEl.innerHTML = renderBlock(block, blockIndex);
+      blocksList.appendChild(blockEl);
+      
+      // Reinitialize DnD
+      initBlocksDnD();
     }
     
-    // Edit block
-    function editBlock(button) {
-      const block = button.closest('.schedule-block');
-      const title = block.querySelector('.block-title').textContent;
-      const time = block.querySelector('.block-time').textContent;
+    // Render block
+    function renderBlock(block, index) {
+      return `
+        <div class="block-card" data-index="${index}">
+          <div class="block-header">
+            <div class="drag-handle">⋮⋮</div>
+            <div class="block-type-badge ${block.type}">${block.type === 'window' ? 'Window' : block.type === 'fixed' ? 'Fixed' : 'Flexible'}</div>
+            <button type="button" class="block-remove" onclick="removeBlock(this)">&times;</button>
+          </div>
+          <div class="block-form">
+            <div class="form-group">
+              <label class="form-label">Name</label>
+              <input type="text" class="form-input" name="name" value="${block.name}" required>
+            </div>
+            ${block.type !== 'flexible' ? `
+              <div class="form-group">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-input" name="start_time" value="${block.start_time}">
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-input" name="end_time" value="${block.end_time}">
+              </div>
+            ` : ''}
+            <div class="form-group">
+              <label class="form-label">Color</label>
+              <div class="color-picker">
+                ${getColorOptions(block.color)}
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Lock Type</label>
+              <select class="form-select" name="lock">
+                <option value="soft" ${block.lock === 'soft' ? 'selected' : ''}>Soft</option>
+                <option value="hard" ${block.lock === 'hard' ? 'selected' : ''}>Hard</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Get default color for block type
+    function getDefaultColor(type) {
+      const colors = {
+        window: '#4F46E5',
+        fixed: '#F97316',
+        flexible: '#8B5CF6'
+      };
+      return colors[type] || '#6B7280';
+    }
+    
+    // Get color options
+    function getColorOptions(selectedColor) {
+      const colors = [
+        '#4F46E5', '#F97316', '#10B981', '#8B5CF6',
+        '#EF4444', '#06B6D4', '#84CC16', '#F59E0B',
+        '#EC4899', '#6366F1', '#14B8A6', '#F43F5E'
+      ];
       
-      const newTitle = prompt('Block title:', title);
-      const newTime = prompt('Block time (HH:MM - HH:MM):', time);
+      return colors.map(color => `
+        <div class="color-option ${color === selectedColor ? 'selected' : ''}" 
+             style="background-color: ${color}" 
+             onclick="selectColor(this, '${color}')"></div>
+      `).join('') + `
+        <div class="color-option custom" onclick="openCustomColor()"></div>
+      `;
+    }
+    
+    // Select color
+    function selectColor(element, color) {
+      // Remove previous selection
+      element.parentElement.querySelectorAll('.color-option').forEach(el => {
+        el.classList.remove('selected');
+      });
       
-      if (newTitle && newTime) {
-        block.querySelector('.block-title').textContent = newTitle;
-        block.querySelector('.block-time').textContent = newTime;
+      // Select new color
+      element.classList.add('selected');
+      
+      // Update block color
+      const blockCard = element.closest('.block-card');
+      const colorInput = blockCard.querySelector('input[name="color"]');
+      if (colorInput) {
+        colorInput.value = color;
       }
     }
     
-    // Delete block
-    function deleteBlock(button) {
+    // Remove block
+    function removeBlock(button) {
       if (confirm('Delete this block?')) {
-        button.closest('.schedule-block').remove();
+        button.closest('.block-card').remove();
       }
     }
     
-    // Apply template
-    function applyTemplate(templateId) {
-      alert(`Template ${templateId} applied to today!`);
-    }
-    
-    // Initialize template DnD
-    function initTemplateDnD() {
+    // Initialize blocks DnD
+    function initBlocksDnD() {
       if (typeof Sortable === 'undefined') return;
       
-      const blocks = document.getElementById('template-blocks');
-      if (blocks) {
-        new Sortable(blocks, {
+      const blocksList = document.getElementById('blocks-list');
+      if (blocksList) {
+        new Sortable(blocksList, {
           animation: 150,
-          handle: '.block-header',
+          handle: '.drag-handle',
+          ghostClass: 'dragging',
           onEnd: (evt) => {
-            console.log('Template block moved');
+            console.log('Block moved');
+            // Update data-index attributes
+            Array.from(blocksList.children).forEach((el, index) => {
+              el.dataset.index = index;
+            });
           }
         });
       }
+    }
+    
+    // Save template
+    function saveTemplate(event) {
+      event.preventDefault();
+      
+      const formData = new FormData(event.target);
+      const name = formData.get('name');
+      const active = templateDialog.querySelector('.switch.active') !== null;
+      
+      // Collect blocks
+      const blocks = Array.from(templateDialog.querySelectorAll('.block-card')).map((card, index) => {
+        const inputs = card.querySelectorAll('input, select');
+        const block = {};
+        inputs.forEach(input => {
+          block[input.name] = input.value;
+        });
+        return block;
+      });
+      
+      // Validate
+      if (!name.trim()) {
+        alert('Template name is required');
+        return;
+      }
+      
+      if (blocks.length === 0) {
+        alert('At least one block is required');
+        return;
+      }
+      
+      // Create or update template
+      const template = {
+        id: currentTemplate?.id || generateId(),
+        name: name.trim(),
+        active,
+        brackets: blocks
+      };
+      
+      if (currentTemplate) {
+        const index = templates.findIndex(t => t.id === currentTemplate.id);
+        templates[index] = template;
+      } else {
+        templates.push(template);
+      }
+      
+      saveTemplates();
+      closeTemplateDialog();
+      renderTemplatesGrid();
+      
+      console.log('Template saved:', template);
+    }
+    
+    // Delete template
+    function deleteTemplate() {
+      if (!currentTemplate) return;
+      
+      if (confirm(`Delete template "${currentTemplate.name}"? This cannot be undone.`)) {
+        templates = templates.filter(t => t.id !== currentTemplate.id);
+        saveTemplates();
+        closeTemplateDialog();
+        renderTemplatesGrid();
+      }
+    }
+    
+    // Generate ID
+    function generateId() {
+      return 'template_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
     
     // ===== CALENDAR FUNCTIONS =====
@@ -2446,3 +3043,4 @@
   </script>
 </body>
 </html>
+
