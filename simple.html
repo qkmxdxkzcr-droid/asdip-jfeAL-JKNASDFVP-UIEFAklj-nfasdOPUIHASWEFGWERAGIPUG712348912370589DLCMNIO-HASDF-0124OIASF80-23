@@ -708,6 +708,9 @@
       
       // Инициализируем высоту всех окон
       setTimeout(() => {
+        // Сначала обновляем статистику окон
+        updateWindowStats();
+        
         document.querySelectorAll('.window-tasks').forEach(window => {
           updateWindowHeight(window);
         });
@@ -1840,10 +1843,18 @@
         
         window.dataset.used = used;
         window.dataset.completed = completed;
-        window.dataset.total = total;
         
-        const windowTotal = parseInt(window.dataset.total);
-        const percentage = Math.min((used / windowTotal) * 100, 100);
+        // data-total содержит вместимость окна в минутах, не количество задач
+        const windowCapacity = parseInt(window.dataset.total);
+        const percentage = Math.min((used / windowCapacity) * 100, 100);
+        
+        console.log('Window stats updated:', {
+          window: window.closest('.timeline-window').querySelector('.window-title').textContent,
+          capacity: windowCapacity,
+          used: used,
+          completed: completed,
+          total: total
+        });
         
         const stats = window.closest('.timeline-window').querySelector('.window-stats');
         stats.querySelector('.used').textContent = used + 'min';
@@ -2215,7 +2226,9 @@
             // Check if target is a window (not unplanned/flexible)
             if (targetList.classList.contains('window-tasks')) {
               const total = parseInt(targetList.dataset.total);
-              const used = parseInt(targetList.dataset.used);
+              const used = parseInt(targetList.dataset.used) || 0;
+              
+              console.log('DnD validation:', { total, used, minutes, task: task.querySelector('.label').textContent });
               
               // Check capacity
               if (used + minutes > total + 3) { // 3 min tolerance
