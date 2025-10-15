@@ -1,0 +1,56 @@
+{
+  "name": "PlanTemplate",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название шаблона"
+    },
+    "active": {
+      "type": "boolean",
+      "default": true,
+      "description": "Активен ли шаблон"
+    },
+    "brackets": {
+      "type": "array",
+      "description": "Список блоков дня",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "fixed",
+              "window"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string",
+            "description": "Время начала (HH:MM)"
+          },
+          "end_time": {
+            "type": "string",
+            "description": "Время окончания (HH:MM)"
+          },
+          "color": {
+            "type": "string"
+          },
+          "lock": {
+            "type": "string",
+            "enum": [
+              "hard",
+              "soft"
+            ],
+            "default": "hard"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

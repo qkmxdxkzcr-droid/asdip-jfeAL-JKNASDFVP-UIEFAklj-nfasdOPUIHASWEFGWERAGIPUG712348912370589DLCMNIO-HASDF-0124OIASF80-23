@@ -1,0 +1,62 @@
+{
+  "name": "DayPlan",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата плана"
+    },
+    "template_id": {
+      "type": "string",
+      "description": "ID шаблона"
+    },
+    "template_name": {
+      "type": "string",
+      "description": "Название шаблона"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "open",
+        "closed"
+      ],
+      "default": "open",
+      "description": "Статус дня"
+    },
+    "brackets": {
+      "type": "array",
+      "description": "Блоки дня (копия из шаблона)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "string"
+          },
+          "end_time": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "duration_min": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "carry_over_from": {
+      "type": "string",
+      "description": "ID дня, откуда перенесены задачи"
+    }
+  },
+  "required": [
+    "date"
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "name": "Project",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Название проекта"
+    },
+    "color": {
+      "type": "string",
+      "description": "Цвет проекта (hex)",
+      "default": "#4F46E5"
+    },
+    "default_duration_min": {
+      "type": "number",
+      "description": "Длительность задач по умолчанию (минуты)",
+      "default": 30
+    },
+    "priority_default": {
+      "type": "string",
+      "enum": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "default": "P3",
+      "description": "Приоритет по умолчанию"
+    },
+    "split_policy": {
+      "type": "string",
+      "enum": [
+        "none",
+        "allow_split"
+      ],
+      "default": "none",
+      "description": "Можно ли разбивать задачи"
+    },
+    "min_chunk": {
+      "type": "number",
+      "description": "Минимальный размер куска при разбивке (минуты)",
+      "default": 15
+    },
+    "max_chunks": {
+      "type": "number",
+      "description": "Максимальное количество кусков",
+      "default": 3
+    },
+    "carry_over": {
+      "type": "string",
+      "enum": [
+        "off",
+        "next_window_same_day",
+        "next_day"
+      ],
+      "default": "next_day",
+      "description": "Политика переноса задач"
+    }
+  },
+  "required": [
+    "name"
+  ]
+}

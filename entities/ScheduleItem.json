@@ -1,0 +1,72 @@
+{
+  "name": "ScheduleItem",
+  "type": "object",
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "description": "ID задачи"
+    },
+    "task_title": {
+      "type": "string",
+      "description": "Название задачи"
+    },
+    "day_plan_id": {
+      "type": "string",
+      "description": "ID плана дня"
+    },
+    "day_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Дата"
+    },
+    "window_name": {
+      "type": "string",
+      "description": "Название окна"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Время начала (HH:MM)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "Время окончания (HH:MM)"
+    },
+    "duration_min": {
+      "type": "number",
+      "description": "Длительность в минутах"
+    },
+    "chunk_index": {
+      "type": "number",
+      "description": "Индекс куска (если разбита)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "in_progress",
+        "done",
+        "overrun"
+      ],
+      "default": "planned",
+      "description": "Статус слота"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Название проекта"
+    },
+    "color": {
+      "type": "string",
+      "description": "Цвет"
+    },
+    "priority": {
+      "type": "string",
+      "description": "Приоритет"
+    }
+  },
+  "required": [
+    "task_id",
+    "day_plan_id",
+    "start_time",
+    "end_time"
+  ]
+}

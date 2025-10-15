@@ -1,0 +1,95 @@
+{
+  "name": "Task",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Название задачи"
+    },
+    "project_id": {
+      "type": "string",
+      "description": "ID проекта"
+    },
+    "project_name": {
+      "type": "string",
+      "description": "Название проекта"
+    },
+    "duration_min": {
+      "type": "number",
+      "description": "Длительность в минутах"
+    },
+    "color": {
+      "type": "string",
+      "description": "Цвет задачи"
+    },
+    "priority": {
+      "type": "string",
+      "enum": [
+        "P1",
+        "P2",
+        "P3",
+        "P4"
+      ],
+      "description": "Приоритет"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Срок выполнения"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Заметки"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Теги"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "todo",
+        "doing",
+        "done",
+        "skipped"
+      ],
+      "default": "todo",
+      "description": "Статус"
+    },
+    "subtasks": {
+      "type": "array",
+      "description": "Подзадачи",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "duration_min": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "todo",
+              "done"
+            ]
+          },
+          "color": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "order": {
+      "type": "number",
+      "description": "Порядок сортировки"
+    }
+  },
+  "required": [
+    "title"
+  ]
+}
