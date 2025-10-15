@@ -408,6 +408,12 @@
   <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/idb@8/dist/umd.min.js"></script>
+  
+  <!-- Internal Modules -->
+  <script type="module" src="js/curves.js"></script>
+  <script type="module" src="js/scheduler.js"></script>
+  <script type="module" src="js/db.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/idb@8/dist/umd.min.js"></script>
 </head>
 <body>
   <div class="app">
@@ -1087,38 +1093,59 @@
         });
       });
       
-      // Calculate stress impact on curves
-      const baseCurves = {
-        cortisol: [0.8, 0.6, 0.4, 0.3, 0.2, 0.1, 0.1],
-        dopamine: [0.3, 0.7, 0.8, 0.6, 0.4, 0.2, 0.1],
-        serotonin: [0.2, 0.4, 0.6, 0.8, 0.7, 0.5, 0.3],
-        sleep: [0.1, 0.1, 0.2, 0.3, 0.5, 0.7, 0.9]
-      };
-      
-      // Apply task stress to curves
-      const modifiedCurves = { ...baseCurves };
-      
-      allTasks.forEach(task => {
-        const stressMultiplier = task.priority === 'P1' ? 1.3 : 
-                                task.priority === 'P2' ? 1.1 : 
-                                task.priority === 'P3' ? 0.9 : 0.7;
-        
-        // Apply stress to cortisol (increases)
-        for (let hour = Math.floor(task.startHour); hour < Math.ceil(task.endHour); hour++) {
-          const index = hour - 8;
-          if (index >= 0 && index < 7) {
-            modifiedCurves.cortisol[index] = Math.min(1, modifiedCurves.cortisol[index] * stressMultiplier);
-            modifiedCurves.dopamine[index] = Math.max(0, modifiedCurves.dopamine[index] / stressMultiplier);
-            modifiedCurves.serotonin[index] = Math.max(0, modifiedCurves.serotonin[index] / stressMultiplier);
-          }
-        }
+      // Build curves with task influence using our new algorithm
+      const points = buildCurvesSimple({
+        dayStartMin: 8 * 60,
+        durationMin: 16 * 60,
+        meals: [],
+        mods: { foodAffectsCurves: true, exerciseAffectsCurves: false }
       });
       
-      // Update chart data
-      curvesChart.data.datasets[0].data = modifiedCurves.cortisol;
-      curvesChart.data.datasets[1].data = modifiedCurves.dopamine;
-      curvesChart.data.datasets[2].data = modifiedCurves.serotonin;
-      curvesChart.data.datasets[3].data = modifiedCurves.sleep;
+      // Apply task influence to curves
+      allTasks.forEach(task => {
+        const priorityWeight = { 'P1': 1.5, 'P2': 1.2, 'P3': 1.0, 'P4': 0.8 }[task.priority] || 1;
+        const stressFactor = (task.minutes / 60) * priorityWeight * 0.1;
+        
+        // Find the time slot for this task and adjust curves
+        points.forEach(point => {
+          const hour = point.t / 60;
+          if (hour >= task.startHour && hour <= task.endHour) {
+            point.cort = Math.min(1, point.cort + stressFactor * 0.3);
+            point.dopa = Math.max(0, point.dopa - stressFactor * 0.2);
+            point.sero = Math.max(0, point.sero - stressFactor * 0.15);
+          }
+        });
+      });
+      
+      // Convert to chart format (7 data points for 8-18 hours)
+      const chartData = {
+        cortisol: [],
+        dopamine: [],
+        serotonin: [],
+        sleep: []
+      };
+      
+      for (let hour = 8; hour <= 18; hour += 2) {
+        const point = points.find(p => Math.floor(p.t / 60) === hour);
+        if (point) {
+          chartData.cortisol.push(point.cort);
+          chartData.dopamine.push(point.dopa);
+          chartData.serotonin.push(point.sero);
+          chartData.sleep.push(point.sleep);
+        } else {
+          // Fallback values
+          chartData.cortisol.push(0.5);
+          chartData.dopamine.push(0.5);
+          chartData.serotonin.push(0.5);
+          chartData.sleep.push(0.5);
+        }
+      }
+      
+      // Update chart
+      curvesChart.data.datasets[0].data = chartData.cortisol;
+      curvesChart.data.datasets[1].data = chartData.dopamine;
+      curvesChart.data.datasets[2].data = chartData.serotonin;
+      curvesChart.data.datasets[3].data = chartData.sleep;
       
       curvesChart.update();
     }
@@ -1258,6 +1285,7 @@
     function createTaskElement(title, minutes, priority) {
       const task = document.createElement('div');
       task.className = 'task';
+      task.dataset.taskId = generateId();
       task.innerHTML = `
         <div class="task-checkbox">
           <input type="checkbox" onchange="toggleTask(this)">
@@ -1276,31 +1304,261 @@
       return task;
     }
     
-    // Auto schedule function
-    function autoSchedule() {
-      const unplannedTasks = document.querySelectorAll('#unplanned .task');
-      const windows = document.querySelectorAll('.window-tasks');
-      
-      if (unplannedTasks.length === 0) {
-        alert('No unplanned tasks to schedule');
-        return;
-      }
-      
-      // Simple auto-scheduling: move tasks to first available window
-      unplannedTasks.forEach((task, index) => {
-        const targetWindow = windows[index % windows.length];
-        const minutes = parseInt(task.querySelector('.minutes').textContent);
-        const total = parseInt(targetWindow.dataset.total);
-        const used = parseInt(targetWindow.dataset.used);
+    // Auto schedule function with real algorithm
+    async function autoSchedule() {
+      try {
+        const unplannedTasks = document.querySelectorAll('#unplanned .task');
         
-        if (used + minutes <= total) {
-          targetWindow.appendChild(task);
-          updateWindowStats();
+        if (unplannedTasks.length === 0) {
+          alert('No unplanned tasks to schedule');
+          return;
+        }
+        
+        // Получаем текущий день
+        const today = new Date().toISOString().slice(0, 10);
+        const day = await getDay(today);
+        
+        // Получаем незапланированные задачи
+        const tasks = Array.from(unplannedTasks).map(taskEl => ({
+          id: taskEl.dataset.taskId || generateId(),
+          title: taskEl.querySelector('.label').textContent,
+          minutes: parseInt(taskEl.querySelector('.minutes').textContent) || 30,
+          priority: taskEl.querySelector('.priority').textContent,
+          type: 'U', // По умолчанию умственная
+          done: false
+        }));
+        
+        // Получаем настройки
+        const settings = await getSettings();
+        
+        // Выполняем автопланирование
+        const { day: updatedDay, tasks: scheduledTasks } = autoScheduleDay(day, tasks, [], settings.weights);
+        
+        // Обновляем UI
+        updateUIFromScheduledTasks(scheduledTasks);
+        updateWindowStats();
+        updateCurves();
+        
+        alert('Auto-scheduling completed with real algorithm!');
+      } catch (error) {
+        console.error('Auto-scheduling failed:', error);
+        alert('Ошибка автопланирования: ' + error.message);
+      }
+    }
+    
+    // Вспомогательные функции для работы с данными
+    async function getDay(date) {
+      // Возвращаем структуру дня с окнами
+      return {
+        date,
+        windows: Array.from(document.querySelectorAll('.window')).map(windowEl => ({
+          id: windowEl.id,
+          title: windowEl.querySelector('.window-title').textContent,
+          startMin: parseInt(windowEl.dataset.startMin) || 0,
+          endMin: parseInt(windowEl.dataset.endMin) || 60
+        })),
+        fixed: [],
+        placed: []
+      };
+    }
+    
+    async function getSettings() {
+      return {
+        autoMinutes: true,
+        autoPriority: true,
+        autoProject: true,
+        weights: {
+          wP: 0.45,
+          wT: 0.25,
+          wC: 0.25,
+          wL: 0.03,
+          wS: 0.02,
+          alpha: 0.4,
+          beta: 0.3,
+          gamma: 0.3,
+          mods: {
+            foodAffectsCurves: true,
+            exerciseAffectsCurves: false
+          }
+        }
+      };
+    }
+    
+    function updateUIFromScheduledTasks(scheduledTasks) {
+      // Обновляем UI на основе запланированных задач
+      scheduledTasks.forEach(task => {
+        if (task.planned) {
+          const windowEl = document.getElementById(task.planned.windowId);
+          if (windowEl) {
+            const taskEl = document.querySelector(`[data-task-id="${task.id}"]`);
+            if (taskEl) {
+              const droplist = windowEl.querySelector('.droplist');
+              droplist.appendChild(taskEl);
+            }
+          }
         }
       });
+    }
+    
+    function generateId() {
+      return 'task_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+    
+    // Реализация автопланировщика (упрощенная версия)
+    function autoScheduleDay(day, tasks, meals = [], weights, eps = 3) {
+      // Строим кривые дня
+      const points = buildCurvesSimple({
+        dayStartMin: 8 * 60, // 8:00
+        durationMin: 16 * 60, // 16 часов
+        meals,
+        mods: weights.mods || {}
+      });
       
-      alert('Auto-scheduling completed!');
-      updateCurves();
+      // Подготавливаем окна
+      const windows = day.windows.map(w => ({
+        ...w,
+        cap: w.endMin - w.startMin,
+        used: 0,
+        placed: []
+      }));
+      
+      // Сортируем задачи по важности
+      const pool = tasks.slice().sort((a, b) => rankTaskSimple(b) - rankTaskSimple(a));
+      
+      // Раскладываем задачи
+      for (const task of pool) {
+        const duration = task.minutes || 0;
+        if (duration <= 0) continue;
+        
+        // Скорим все доступные окна
+        const scored = windows
+          .map(w => ({
+            w,
+            s: scoreTaskWindowSimple(task, w, points, weights),
+            room: w.cap - w.used
+          }))
+          .filter(x => x.room >= duration - eps)
+          .sort((a, b) => b.s - a.s);
+        
+        const best = scored[0];
+        if (!best) continue;
+        
+        // Размещаем задачу
+        const startMin = nextFreeSlotSimple(best.w);
+        const endMin = startMin + duration;
+        
+        best.w.placed.push({
+          windowId: best.w.id,
+          taskId: task.id,
+          startMin,
+          endMin
+        });
+        
+        best.w.used += duration;
+        task.planned = {
+          date: day.date,
+          windowId: best.w.id,
+          startMin,
+          endMin
+        };
+      }
+      
+      day.placed = windows.flatMap(w => w.placed);
+      return { day, tasks };
+    }
+    
+    // Упрощенные функции для работы без ES модулей
+    function buildCurvesSimple({ dayStartMin, durationMin, meals, mods }) {
+      const points = [];
+      const step = 5;
+      
+      for (let t = 0; t <= durationMin; t += step) {
+        const hour = t / 60;
+        
+        // Простые базовые кривые
+        const cort = Math.max(0, Math.min(1, 0.9 - (hour - 6) * 0.1));
+        const dopa = Math.max(0, Math.min(1, 0.3 + Math.sin((hour - 6) * Math.PI / 12) * 0.4));
+        const sero = Math.max(0, Math.min(1, 0.7 - (hour - 12) * 0.05));
+        const sleep = Math.max(0, Math.min(1, (hour - 6) * 0.1));
+        
+        points.push({ t, cort, dopa, sero, sleep });
+      }
+      
+      return points;
+    }
+    
+    function scoreTaskWindowSimple(task, window, points, weights) {
+      const { wP = 0.45, wT = 0.25, wC = 0.25, wL = 0.03, wS = 0.02 } = weights;
+      
+      // Приоритет
+      const priorityScore = { 'P1': 1, 'P2': 0.7, 'P3': 0.5, 'P4': 0.25 }[task.priority] || 0.5;
+      
+      // Соответствие типа времени
+      const windowHour = window.startMin / 60;
+      const typeFit = getTypeFitSimple(task.type || 'U', windowHour);
+      
+      // Интеграл кривых
+      const cortIntegral = integralSimple(points, window.startMin, window.endMin, 'cort');
+      const dopaIntegral = integralSimple(points, window.startMin, window.endMin, 'dopa');
+      const seroIntegral = integralSimple(points, window.startMin, window.endMin, 'sero');
+      
+      const curvesScore = 0.4 * cortIntegral + 0.3 * dopaIntegral + 0.3 * seroIntegral;
+      
+      // Штраф за плотность
+      const density = (window.used + (task.minutes || 0)) / Math.max(1, window.cap);
+      const densityPenalty = Math.max(0, density - 0.85) * 2;
+      
+      // Штраф за стресс
+      const stressPenalty = (task.coeff?.P || 0) * (1 - seroIntegral) * 0.5;
+      
+      return wP * priorityScore + wT * typeFit + wC * curvesScore - wL * densityPenalty - wS * stressPenalty;
+    }
+    
+    function rankTaskSimple(task) {
+      const priorityRank = { 'P1': 1, 'P2': 0.7, 'P3': 0.5, 'P4': 0.25 }[task.priority] || 0.5;
+      const timeRank = (task.minutes || 0) / 60;
+      return priorityRank * 100 + timeRank * 10;
+    }
+    
+    function getTypeFitSimple(taskType, hour) {
+      const matrix = {
+        'U': { 6: 0.3, 7: 0.6, 8: 0.8, 9: 0.9, 10: 0.9, 11: 0.8, 12: 0.6, 13: 0.4, 14: 0.7, 15: 0.8, 16: 0.7, 17: 0.5, 18: 0.3, 19: 0.2 },
+        'M': { 6: 0.2, 7: 0.4, 8: 0.6, 9: 0.7, 10: 0.8, 11: 0.7, 12: 0.5, 13: 0.3, 14: 0.6, 15: 0.7, 16: 0.8, 17: 0.6, 18: 0.4, 19: 0.3 },
+        'F': { 6: 0.3, 7: 0.7, 8: 0.8, 9: 0.6, 10: 0.5, 11: 0.4, 12: 0.3, 13: 0.2, 14: 0.4, 15: 0.6, 16: 0.7, 17: 0.8, 18: 0.6, 19: 0.4 }
+      };
+      
+      const hourMap = matrix[taskType] || matrix['U'];
+      const roundedHour = Math.round(hour);
+      return hourMap[roundedHour] || 0.5;
+    }
+    
+    function integralSimple(points, startMin, endMin, key) {
+      let sum = 0;
+      let prev = null;
+      
+      for (const p of points) {
+        if (p.t < startMin || p.t > endMin) continue;
+        if (prev) {
+          sum += (p[key] + prev[key]) * (p.t - prev.t) / 2;
+        }
+        prev = p;
+      }
+      
+      return sum / Math.max(1, endMin - startMin);
+    }
+    
+    function nextFreeSlotSimple(window) {
+      const placed = window.placed.sort((a, b) => a.startMin - b.startMin);
+      let current = window.startMin;
+      
+      for (const p of placed) {
+        if (current + (window.used || 0) <= p.startMin) {
+          return current;
+        }
+        current = p.endMin;
+      }
+      
+      return current;
     }
     
     // Update window statistics
